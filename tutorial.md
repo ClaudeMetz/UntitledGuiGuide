@@ -240,10 +240,10 @@ local function build_sprite_buttons(player)
     local button_table = player.gui.screen.ugg_main_frame.content_frame.button_frame.button_table
     button_table.clear()
 
-    local button_count = global.players[player.index].button_count
+    local player_global = global.players[player.index]
 
     for index, sprite_name in ipairs(item_sprites) do
-        if index > button_count then break end
+        if index > player_global.button_count then break end
 
         button_table.add{type="sprite-button", sprite=("item/" .. sprite_name), style="recipe_slot_button"}
     end
@@ -254,13 +254,68 @@ The first order of business is to aquire a reference to the table we want to put
 
 Then, we'll need to extract the number of buttons the user wants from `global`, which is thankfully quite easy. This right here is one of the main reasons we want to save that number in `global`. It allows us to call this function from anywhere at any point, without needing to give it any parameters except the `player`, and it can gather what it needs itself. This makes this a very easy interface as just adding a simple function call anywhere without any preparation will do the trick.
 
-Lastly comes the actual construction of the buttons. We loop through our list of sprites that we want to show, while making sure we respect the limit the user set with our `break` condition. Adding a GUI element has become routine by now, we configure a type, a sprite for our button (which needs to be [formatted](https://lua-api.factorio.com/latest/Concepts.html#SpritePath) by prefixing `item/`), and an appropriate style.
+Finally, there's the actual construction of the buttons. We loop through our list of sprites that we want to show, while making sure we respect the limit the user set with our `break` condition. Adding a GUI element has become routine by now, we configure a type, a sprite for our button (which needs to be [formatted](https://lua-api.factorio.com/latest/Concepts.html#SpritePath) by prefixing `item/`), and an appropriate style.
 
-Now that we have this handy function, all we need to do is to make sure that we call it when the desired amount of buttons changes, which is at the end of both the `on_gui_value_changed` and `on_gui_text_changed`. Go ahead and add the function call from above to both of those, then load these changes and play with the slider. The buttons will pop in and out of existence in a satisfying way. It should look like this:
+Now that we have this handy function, all we need to do is to make sure that we call it when the desired amount of buttons changes, which is at the end of both the `on_gui_value_changed` and `on_gui_text_changed`. Go ahead and add the function call from above to both of those, then load these changes and play with the slider. It should look like this:
 
 ![Screenshot of frame with some buttons shown](images/yellowness_achieved.png)
 
-And there we go, for the main part of the tutorial at least. Now go forth into the world, with this knowledge in hand, and create some Factorio GUIs. Or, if you want to create some truly great interfaces, don't just yet, and dive into the Advanced Techniques section, which'll show you all the tricks of the trade to build some outstanding experiences. Your call.
+The buttons will pop in and out of existence as you move the slider. Isn't that satisfying. What's also satisfying is how these buttons will come in useful in the next chapter, illustrating how to work with a variable amount of same-ish buttons.
+
+*You can download a snapshot of the mod at this point [here]().*
+
+## Tagging Your Buttons
+
+These pristine buttons are pretty, but don't actually serve any purpose yet. Kind of a problematic situation for something the user is supposed to push. Let's give them something to do, and even learn a thing or two along the way.
+
+What we're going to do is pretty straightforward: We'll let the user select one of the buttons by pressing them. The selected button is highlighted in yellow, the others remain as they are. There can only be one button selected at once. At the beginning, no button is selected.
+
+What we need for that is another global variable to store the name of the currently selected item in. We'll call it `selected_item` and it'll start off as `nil`, meaning nothing is selected at first. So, we expand the global table initialization we do `on_player_created`:
+
+```lua
+global.players[event.player_index] = { controls_active = true, button_count = 0, selected_item = nil }
+```
+
+Then, we need to make sure that the buttons reflect their selected-ness properly. We do this in the function that builds our buttons, by checking the content of our global `selected_item` variable and assigning the appropriate style. Update the `build_sprite_buttons()`-function by adding the style-decision variable `button_style`:
+
+```lua
+local button_style = (sprite_name == player_global.selected_item) and "yellow_slot_button" or "recipe_slot_button"
+button_table.add{type="sprite-button", sprite=("item/" .. sprite_name), style=button_style}
+```
+
+Now, we get onto the part where we react to the user clicking on a button. Should be similar to what we do with our activation button, right? Not quite, I'm afraid. The issue is that there's a variable number of buttons, and we need to be able to distinguish them in our on_click event. In this particular case, we *could* read the sprite on the button that's clicked and determine which one it is that way. That kind of approach will not work in every case though, so in the context of this tutorial, we'll use a more generic one: [tags](https://lua-api.factorio.com/latest/LuaGuiElement.html#LuaGuiElement.tags).
+
+[Tags](https://lua-api.factorio.com/latest/Concepts.html#Tags) are a simple way of attaching primitive lua values to any GUI element. We can use them to add any kind of identifying information to our element, which is incredibly useful. Note that tags were only added with [Factorio 1.1](https://wiki.factorio.com/Version_history/1.1.0#1.1.0), so many older mods don't use them. The go-to way to store this information was to concatenate the data into a string and use it as the name of the element. This older approach is not recommended practice anymore, you should definitely use tags. Just know that when you look at other mods, there is a reason why they cram so much data into the element name.
+
+Tags are really simple to use, you just set them when creating the element. In our case, we just need a tag that contains the name of the item that the button represents. We give the tag a name (just `item_name` in our case) and associate the appropriate value to it. In addition, we add a tag called `action` that tells our event later on which kind of button this is in general. So, we add these two tags to our button creation as follows:
+
+```lua
+button_table.add{type="sprite-button", sprite=("item/" .. sprite_name), tags={action="ugg_select_button", item_name=sprite_name}, style=button_style}
+```
+
+There's two more things that are important to note here. First, we couldn't use the exact same name for all of our buttons, ie. all give them the `ugg_select_button` name. The game doesn't allow two elements with the same parent to have identical names, as that would obviously break our ability to index them by name. So we need to put that `name` into a tag as well, which is just as valid. Second, we used the `action` moniker to indicate which group this button belongs to. This is by no means an entrenched convention, you can use any format for this you like. Just make sure that it doesn't collide with other mods' usage of tags, as again, your `on_gui_click` event fires for any mod's button, not just your own.
+
+Finally, we can get to the event handler itself, which is mostly straightforward. As we already have an `on_gui_click` handler, we can't add a second one, as that would override the first one. We need to expand our existing handler. Below is the whole, updated handler, with some of the unchanged code cut out:
+
+```lua
+script.on_event(defines.events.on_gui_click, function(event)
+    if event.element.name == "ugg_controls_toggle" then
+        [ ... ]
+    elseif event.elements.tags.action == "ugg_select_button" then
+        local clicked_item_name = event.element.tags.item_name
+        global.players[event.player_index].selected_item = clicked_item_name
+
+        local player = game.get_player(event.player_index)
+        build_sprite_buttons(player)
+    end
+end)
+```
+
+After making sure we react to the right event, we first extract the item-name of the clicked element from the `tags` we attached previously. Then, we save that to our `selected_item` variable we added to `global`. Lastly, we use our handy `build_sprite_buttons()`-function to refresh the list of buttons to reflect the new situation. Note how having a single function that refreshes our buttons saves us a bit of effort here. If we didn't have it, we'd need to manually iterate over the exisiting buttons, compare their tags and update the style accordingly. If you did everything right, your GUI will look something like this:
+
+![Screenshot of frame with one button selected](images/yellowness_selected.png)
+
+There you go. You now know the basics of creating custom Factorio interfaces. This base of knowledge should be enough for you to go out on your own. There is however still more to learn. In these five chapters, some shortcuts were taken to not hit you over the head with too much information at once. This means that the code produced so far is not actually the most proper way to do things in some aspects. In the following, we'll go into some more advanced aspects to make the interface and code just that little bit nicer.
 
 *You can download a snapshot of the mod at this point [here]().*
 
@@ -272,17 +327,13 @@ And there we go, for the main part of the tutorial at least. Now go forth into t
 
 This is a collection of unrelated advanced topics related to working with GUIs.
 
+### Making the GUI actually nice
+
+shortcuts to open it, respond to E/ESC, use global data in builder cause it's cleaner, etc
+
 ## How to come up with your own interfaces
 
 Might deserve to be main topic. Tell about looking at other mods, style guide, Ctrl+F5/F6, etc
-
-### Making the GUI actually nice (shortcuts to open it, respond to E/ESC, etc)
-
-These seem important. Might even deserve to be the last main tut topic
-
-### Tags
-
-Should explain these, wanted to do it in the main tut, but cut that for now
 
 ### Migrations
 
@@ -315,5 +366,4 @@ You can not manipulate any base game UI in any direct way, as they are programme
 
 ## Notes:
 
-?? save data to global first, then use it in GUI code right below ??
-Should probably split this into chapters at some point, Github Wiki might be a place for this? Otherwise just .md files on GH for now
+And there we go, for the main part of the tutorial at least. Now go forth into the world, with this knowledge in hand, and create some Factorio GUIs. Or, if you want to create some truly great interfaces, don't just yet, and dive into the Advanced Techniques section, which'll show you all the tricks of the trade to build some outstanding experiences. Your call.
