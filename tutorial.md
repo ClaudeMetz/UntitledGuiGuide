@@ -1,6 +1,6 @@
 # Untitled GUI Guide
 
-This is a tutorial to get you started with building a custom GUI for Factorio. It'll guide you through all the relevant steps, including the creation, styling and updating of the individual elements, and the reaction to user actions. This process is pretty involved, so please take your time. Creating custom interfaces in Factorio requires you to learn a lot of the general concepts involved in modding, so if this is your time working on a mod, it'll take you a bit to get going.
+This is a tutorial to get you started with building a custom GUI for Factorio. It'll guide you through all the relevant steps, including the creation, styling and updating of the individual elements, and the reaction to user actions. This process is pretty involved, so please take your time. Creating custom interfaces in Factorio requires you to learn a lot of the general concepts involved in modding, so if this is your first time working on a mod, it'll take you a bit to get going.
 
 ## Before You Get Started
 
@@ -16,7 +16,7 @@ Building custom GUIs is (apart from some of the styling) entirely done at runtim
 
 First, there is [LuaGui](https://lua-api.factorio.com/latest/LuaGui.html), which is your jumping-off point. It is found on every [LuaPlayer](https://lua-api.factorio.com/latest/LuaPlayer.html#LuaPlayer.gui) and presents the top level elements that you'll be adding your own ones to. Especially relevant here is [LuaGui.screen](https://lua-api.factorio.com/latest/LuaGui.html#LuaGui.screen), as it's the one you'll be using the most.
 
-Then, there is [LuaGuiElement](https://lua-api.factorio.com/latest/LuaGuiElement.html), which is the heart of the GUI API as it gives you the ability to [create](https://lua-api.factorio.com/latest/LuaGuiElement.html#LuaGuiElement.add) and modify elements. There's an overview of the types of elements that are available at the top. Don't be scared off by the wall of attributes and methods available, most of them only relate to a single type of
+Then, there is [LuaGuiElement](https://lua-api.factorio.com/latest/LuaGuiElement.html), which is the heart of the GUI API as it gives you the ability to [create](https://lua-api.factorio.com/latest/LuaGuiElement.html#LuaGuiElement.add) and modify elements. There's an overview of the types of elements that are available at the top. Don't be scared off by the wall of attributes and methods available, most of them only relate to a single type of element.
 
 Lastly, there is [LuaStyle](https://lua-api.factorio.com/latest/LuaStyle.html), which you can use to dynamically modify the appearence of your elements. These are things like [size](https://lua-api.factorio.com/latest/LuaStyle.html#LuaStyle.size), [padding](https://lua-api.factorio.com/latest/LuaStyle.html#LuaStyle.padding) or [font](https://lua-api.factorio.com/latest/LuaStyle.html#LuaStyle.font). Be aware that some attributes that change appearance are attached to [LuaGuiElement](https://lua-api.factorio.com/latest/LuaGuiElement.html) instead for historic reasons.
 
@@ -54,7 +54,7 @@ At this point, it is important to note that you need to start a new map with thi
 
 There is already quite a lot happening in that short snippet of code, so we'll go through it line by line. First, you need to get the actual player object that we'll be adding the GUI to. The event only provides us with the `player_index`, not the `player` object itself, so we put `player_index` into [game.get_player()](https://lua-api.factorio.com/latest/LuaGameScript.html#LuaGameScript.get_player) and out plops our player object.
 
- Then, we'll need to get one of the base elements that the game provides to us. In our case, we choose `screen` as it's the most versatile one of the bunch. This base element can be found on [LuaGui](https://lua-api.factorio.com/latest/LuaGui.html#LuaGui.screen), which in turn is found on the [LuaPlayer](https://lua-api.factorio.com/latest/LuaPlayer.html#LuaPlayer.gui) object we got a handle on in the previous line.
+Then, we'll need to get one of the base elements that the game provides to us. In our case, we choose `screen` as it's the most versatile one of the bunch. This base element can be found on [LuaGui](https://lua-api.factorio.com/latest/LuaGui.html#LuaGui.screen), which in turn is found on the [LuaPlayer](https://lua-api.factorio.com/latest/LuaPlayer.html#LuaPlayer.gui) object we got a handle on in the previous line.
 
 With that infrastructure in place, we can add our actual element using [LuaGuiElement.add](https://lua-api.factorio.com/latest/LuaGuiElement.html#LuaGuiElement.add). The docs for this element are somewhat intimidating, but you won't need to worry about most of the function's arguments. In our case, we just want to add a `frame` (which is the type that represents a window) with a caption/title on it. To that end, we'll call `.add` and pass a table describing the `type` of element and a localised string for the caption. If you are not familiar with how localised strings work, please refer to the 'Before you get started' section to learn more before you proceed.
 
@@ -166,7 +166,7 @@ controls_flow.ugg_controls_textfield.enabled = player_table.controls_active
 
 This reveals why we gave every one of our elements a proper name, even if their name won't be checked against in any events: It allows us to get a reference to any element we want by following the nested structure of our interface, from the base element `screen` over frames and flows to our `controls_flow` element at last. With that, we can make one last jump to the slider and textfield and set their [enabled](https://lua-api.factorio.com/latest/LuaGuiElement.html#LuaGuiElement.enabled)-state appropriately.
 
-Now, this approach of grapping along the element tree is kind of tedious and fragile when should you decide to move any elements around at a later on. There is the alternative apporach of saving references to your important elements in `global` to easily retrieve them later, but we'll save that for an 'Advanced Techniques' topic. This stateless approach works for our purposes here.
+Now, this approach of grappling along the element tree is kind of tedious and fragile should you decide to move any elements around at a later point. There is the alternative apporach of saving references to your important elements in `global` to easily retrieve them later, but we'll save that for an 'Advanced Techniques' topic. This stateless approach works for our purposes here.
 
 Load up these changes and push the button. It should now disable our control elements appropriately, looking like this:
 
@@ -217,7 +217,7 @@ And that's it for this chapter, hopefully it has made you more confident in how 
 
 ## Putting Sprites Into Buttons
 
-Our goal in this chapter is to put a row of sprite buttons into our interface, each showing one of the item sprites we listed in our `item_sprites` table. In addition, we want to allow the user to choose how many of those buttons are shown to him. Lucky us, we already have the infrastructure in place to do this! Our 'slider and textfield'-combo does exactly this, and even saves the result to `global`.
+Our goal in this chapter is to put a row of sprite buttons into our interface, each showing one of the item sprites we listed in our `item_sprites` table. In addition, we want to allow the user to choose how many of those buttons are shown to them. Lucky us, we already have the infrastructure in place to do this! Our 'slider and textfield'-combo does exactly this, and even saves the result to `global`.
 
 Creating these buttons will require a somewhat different approach to what we did previously though. We can't just statically create those buttons as we'll need to take into account how many of them should be shown, and even adjust in reaction to user input. A popular approach to this problem is to, at the moment the desired amount of buttons changes, remove all the existing buttons and recreate the exact ones you need. This 'pave and rebuild' technique is pretty basic, but it's also simple to implement and reduces the complexity of your code quite significantly in some cases, even if it does cost some performance.
 
@@ -232,7 +232,7 @@ button_frame.add{type="table", name="button_table", column_count=#item_sprites, 
 
 This code creates a frame with a particular style, into which we layer a table that'll be home to our eventual buttons. You'll often encounter this type of layering of containers when creating GUIs, as it's often used in combination with particular styles to achieve a certain optical effect. Here, it's creating a dark inlaid box, similar to the player's main inventory.
 
-We can do this part alongside the rest of our interface because it'll remain static. We'll always need a box to put our buttons into that doesn't change, even if the buttons themselves will. Now comes the trick though: We'll use a function to build the buttons themselves. The call to the function gets put right after we create the button box in `on_player_created`:
+We can do this part alongside the rest of our interface because it'll remain static. We'll always need a box to put our buttons into; That doesn't change, even if the buttons themselves will. Now comes the trick though: We'll use a function to build the buttons themselves. The call to the function gets put right after we create the button box in `on_player_created`:
 
 ```lua
 build_sprite_buttons(player)
