@@ -142,7 +142,7 @@ The process for creating these elements is very similar to the one for our previ
 
 The `maximum_value` of our slider is determined by the number of elements in the `item_sprites` array. We'll only use this in the next chapter, but we put it in place now. Determining the `maximum_value` depending on the size of the array instead of hard-coding it allows us to only modify the array itself, and the interface will adjust automatically.
 
-The array itself is defined outside any events in a file-local variable. This allows us to read it from any of our events, eliminating the need to duplicate it. Be careful though: This only works for variables that you don't modify in your events, they have to be treated as read-only. Otherwise, your game will desync and crash. Any mutable data needs to be saved to `global`. This is how the array is defined:
+The array itself is defined outside any events in a file-local variable. This allows us to read it from any of our events, eliminating the need to duplicate it. Be careful though: This only works for variables that you don't modify in your events, they have to be treated as read-only. Otherwise, your game will desync and crash. Any mutable data needs to be saved to `global`, as explained on the [wiki](https://wiki.factorio.com/Tutorial:Scripting#Saving_data_&_the_global_table). This is how the array is defined:
 
 ```lua
 local item_sprites = {"inserter", "transport-belt", "stone-furnace", "assembling-machine-3",
@@ -323,6 +323,8 @@ You can not manipulate any base game UI in any direct way, as they are programme
 ----
 
 ## Notes:
+
+Remove linebreaks from code examples
 
 ?? save data to global first, then use it in GUI code right below ??
 Should probably split this into chapters at some point, Github Wiki might be a place for this? Otherwise just .md files on GH for now
