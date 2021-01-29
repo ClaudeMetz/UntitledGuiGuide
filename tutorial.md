@@ -71,10 +71,8 @@ The last line tells our frame to automatically center itself in the middle of th
 Most interfaces will want to present both data and allow to user to interact with it. To allow for this interaction, you can add control surfaces like buttons, sliders, or textfields. When the user interacts with these, the game fires the appropriate event that you'll be able to catch. We'll start simple and add a button to our frame by adding this code to the bottom of the `on_player_created` event.
 
 ```lua
-local content_frame = main_frame.add{type="frame", name="content_frame", direction="vertical",
-  style="ugg_content_frame"}
-local controls_flow = content_frame.add{type="flow", name="controls_flow", direction="horizontal",
-  style="ugg_controls_flow"}
+local content_frame = main_frame.add{type="frame", name="content_frame", direction="vertical", style="ugg_content_frame"}
+local controls_flow = content_frame.add{type="flow", name="controls_flow", direction="horizontal", style="ugg_controls_flow"}
 
 controls_flow.add{type="button", name="ugg_controls_toggle", caption={"ugg.deactivate"}}
 ```
@@ -132,10 +130,8 @@ The remaining code is pretty straightforward. We get the global table of the pla
 At this point, you know how to create elements and how to hook up event listeners to them, but only barely. This chapter will apply what was shown before to a new situation, and bring up a new thing here or there. We'll add an interactive slider and textfield to give our lonely button a purpose and some company. We want to add them right next to the button, which is where our previously added flow named `controls_flow` comes in handy. Just add the following two lines to our `on_player_created` handler which add to the desired flow:
 
 ```lua
-controls_flow.add{type="slider", name="ugg_controls_slider", minimum_value=0, maximum_value=#item_sprites,
-  style="notched_slider"}
-controls_flow.add{type="textfield", name="ugg_controls_textfield", text="0", numeric=true,
-  allow_decimal=false, allow_negative=false, style="ugg_controls_textfield"}
+controls_flow.add{type="slider", name="ugg_controls_slider", minimum_value=0, maximum_value=#item_sprites, style="notched_slider"}
+controls_flow.add{type="textfield", name="ugg_controls_textfield", text="0", numeric=true, allow_decimal=false, allow_negative=false, style="ugg_controls_textfield"}
 ```
 
 The process for creating these elements is very similar to the one for our previous elements. We take a look at [LuaGuiElement.add](https://lua-api.factorio.com/latest/LuaGuiElement.html#LuaGuiElement.add) to see what arguments are needed for the desired type of element and fill them in. In our case, we want a slider and a textfield that mirror each other's value. Note that we set our textfield to only allow positive integer numbers, as that is what our slider itself represents.
@@ -145,8 +141,7 @@ The `maximum_value` of our slider is determined by the number of elements in the
 The array itself is defined outside any events in a file-local variable. This allows us to read it from any of our events, eliminating the need to duplicate it. Be careful though: This only works for variables that you don't modify in your events, they have to be treated as read-only. Otherwise, your game will desync and crash. Any mutable data needs to be saved to `global`, as explained on the [wiki](https://wiki.factorio.com/Tutorial:Scripting#Saving_data_&_the_global_table). This is how the array is defined:
 
 ```lua
-local item_sprites = {"inserter", "transport-belt", "stone-furnace", "assembling-machine-3",
-  "logistic-chest-storage", "sulfur", "utility-science-pack", "laser-turret"}
+local item_sprites = {"inserter", "transport-belt", "stone-furnace", "assembling-machine-3", "logistic-chest-storage", "sulfur", "utility-science-pack", "laser-turret"}
 ```
 
 Running this then code will make our little window look like this:
@@ -297,10 +292,6 @@ Basically deleting and recreating all your guis on migration
 
 This can only really be used if migrations are explained
 
-### Explanation of how multiplayer works for GUIs
-
-This'll be fun
-
 ### Style prototypes
 
 Think it might be cool to only mention these down here
@@ -323,8 +314,6 @@ You can not manipulate any base game UI in any direct way, as they are programme
 ----
 
 ## Notes:
-
-Remove linebreaks from code examples
 
 ?? save data to global first, then use it in GUI code right below ??
 Should probably split this into chapters at some point, Github Wiki might be a place for this? Otherwise just .md files on GH for now
