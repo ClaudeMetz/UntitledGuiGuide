@@ -315,7 +315,7 @@ After making sure we react to the right event, we first extract the item-name of
 
 ![Screenshot of frame with one button selected](images/yellowness_selected.png)
 
-There you go. You now know the basics of creating custom Factorio interfaces. This base of knowledge should be enough for you to go out on your own. There is however still more to learn. In these five chapters, some shortcuts were taken to not hit you over the head with too much information at once. This means that the code produced so far is not actually the most proper way to do things in some aspects. In the following, we'll go into some more advanced aspects to make the interface and code just that little bit nicer.
+And there you go. You now know the basics of creating custom Factorio interfaces. This base of knowledge should be enough for you to go out on your own. There is however still more to learn. In these five chapters, some shortcuts were taken to not hit you over the head with too much information at once. This means that the code produced so far is not actually the most proper way to do things in some aspects. In the following, we'll go into some more advanced aspects to make the interface and code just that little bit nicer.
 
 *You can download a snapshot of the mod at this point [here]().*
 
@@ -329,19 +329,15 @@ This is a collection of unrelated advanced topics related to working with GUIs.
 
 ### Making the GUI actually nice
 
-shortcuts to open it, respond to E/ESC, use global data in builder cause it's cleaner, etc
+hotkeys, shortcuts to open, responding to E/ESC, use global data in builder cause it's cleaner, etc
 
-## How to come up with your own interfaces
-
-Might deserve to be main topic. Tell about looking at other mods, style guide, Ctrl+F5/F6, etc
-
-### Migrations
+### Migrations + saving refs to global
 
 Basically deleting and recreating all your guis on migration
 
-### Saving element references in global
+## How to come up with your own interfaces
 
-This can only really be used if migrations are explained
+Might deserve to be a main topic. Tell about looking at other mods, style guide, Ctrl+F5/F6, etc
 
 ### Style prototypes
 
@@ -357,13 +353,3 @@ You can not manipulate any base game UI in any direct way, as they are programme
 
 - You can entirely replace
 - You can add relative elements
-
-### etc
-
-- mod settings, hotkeys, shortcuts, sprites
-
-----
-
-## Notes:
-
-And there we go, for the main part of the tutorial at least. Now go forth into the world, with this knowledge in hand, and create some Factorio GUIs. Or, if you want to create some truly great interfaces, don't just yet, and dive into the Advanced Techniques section, which'll show you all the tricks of the trade to build some outstanding experiences. Your call.
