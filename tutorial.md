@@ -319,37 +319,29 @@ And there you go. You now know the basics of creating custom Factorio interfaces
 
 *You can download a snapshot of the mod at this point [here]().*
 
-----
+## Chapter 6: Niceification
 
-## [[ END OF TUTORIAL - ideas for future sections below ]]
+[[hotkeys, shortcuts to open, responding to E/ESC, use global data in builder cause it's cleaner, etc]]
 
-## Advanced Techniques
+## Chapter 7: The Big Migration
 
-This is a collection of unrelated advanced topics related to working with GUIs.
+[[Basically deleting and recreating all your guis on migration + savings refs in global]]
 
-### Making the GUI actually nice
+## Topic: Looking For Inspiration
 
-hotkeys, shortcuts to open, responding to E/ESC, use global data in builder cause it's cleaner, etc
+[[Tell about looking at other mods, style guide, Ctrl+F5/F6, etc]]
 
-### Migrations + saving refs to global
+## Topic: mod-gui
 
-Basically deleting and recreating all your guis on migration
 
-### How to come up with your own interfaces
 
-Tell about looking at other mods, style guide, Ctrl+F5/F6, etc
+## Topic: Style Prototypes
 
-### Style prototypes
+## Topic: Manipulating Vanilla GUIs
 
-Think it might be cool to only mention these down here
-
-### mod-gui
-
-Finally document this one
-
-### Manipulating Vanilla GUIs
-
+[[
 You can not manipulate any base game UI in any direct way, as they are programmed in C++ using a different system. There are however a couple of indirect ways to influence them using a mod:
 
 - You can entirely replace
 - You can add relative elements
+]]
