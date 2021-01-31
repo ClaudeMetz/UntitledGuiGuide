@@ -335,9 +335,9 @@ hotkeys, shortcuts to open, responding to E/ESC, use global data in builder caus
 
 Basically deleting and recreating all your guis on migration
 
-## How to come up with your own interfaces
+### How to come up with your own interfaces
 
-Might deserve to be a main topic. Tell about looking at other mods, style guide, Ctrl+F5/F6, etc
+Tell about looking at other mods, style guide, Ctrl+F5/F6, etc
 
 ### Style prototypes
 
