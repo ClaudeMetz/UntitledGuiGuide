@@ -1,4 +1,4 @@
-# Untitled GUI Guide
+# Introduction
 
 This is a tutorial to get you started with building a custom GUI for Factorio. It'll guide you through all the relevant steps, including the creation, styling and updating of the individual elements, and the reaction to user actions. This process is pretty involved, so please take your time. Creating custom interfaces in Factorio requires you to learn a lot of the general concepts involved in modding, so if this is your first time working on a mod, it'll take you a bit to get going.
 
@@ -10,7 +10,13 @@ This is also neither a programming nor lua tutorial, please have a look at exter
 
 Lastly, it is important to note that this is not a style guide. It shows you how the technical side of building a GUI works, but not necessarily which pre-made styles to use and how to properly lay out your interface. Please refer to Raiguard's [style guide](https://github.com/raiguard/Factorio-SmallMods/wiki/GUI-Style-Guide) [work in progress!] for a proper style guide after you've got the basics of this tutorial down.
 
-## Familiarizing Yourself With The Tools
+## Following Along
+
+During the course of this tutorial, we'll be building a small GUI that illustrates the concepts that are being taught. To that end, you'll find a zipped version of the mod after every chapter of the tutorial that can be used to verify the code you wrote, or to just use directly to avoid you having to put the snippets of code together yourself.
+
+We'll be starting from a blank project that you can download [here](). It only has a basic `info.json`, a `control.lua` file that disables the freeplay intro cinematic, a `data.lua` that adds some style prototypes, and locale file that we'll be using down the line. If you're not familiar with what you see here, please refer to the 'Before you get started' section to learn more before you proceed.
+
+## Chapter 0: Familiarizing Yourself With The Tools
 
 Building custom GUIs is (apart from some of the styling) entirely done at runtime, meaning your code will live in `control.lua`. There are actually only three distinct classes (plus some events) of the [runtime API](https://lua-api.factorio.com/latest/index.html) that we care about.
 
@@ -22,13 +28,7 @@ Lastly, there is [LuaStyle](https://lua-api.factorio.com/latest/LuaStyle.html), 
 
 In addition, you'll also be relying on several [events](https://lua-api.factorio.com/latest/events.html), notably the ones starting with `on_gui_`. These notify you of actions the user takes on your GUI elements, allowing you to react in the way you see fit. These actions can be [clicks](https://lua-api.factorio.com/latest/events.html#on_gui_click), [text input](https://lua-api.factorio.com/latest/events.html#on_gui_text_changed), or [confirmations](https://lua-api.factorio.com/latest/events.html#on_gui_confirmed).
 
-## Following Along
-
-During the course of this tutorial, we'll be building a small GUI that illustrates the concepts that are being taught. To that end, you'll find a zipped version of the mod after every chapter of the tutorial that can be used to verify the code you wrote, or to just use directly to avoid you having to put the snippets of code together yourself.
-
-We'll be starting from a blank project that you can download [here](). It only has a basic `info.json`, a `control.lua` file that disables the freeplay intro cinematic, a `data.lua` that adds some style prototypes, and locale file that we'll be using down the line. If you're not familiar with what you see here, please refer to the 'Before you get started' section to learn more before you proceed.
-
-## Hello, World!
+## Chapter 1: Hello, World!
 
 With all that out of the way, let's finally get to some actual coding. In this first step, you'll be putting a window on the screen that shows the canonical 'Hello, World!' string. If you've properly familiarized yourself with your tools, you might already have an inkling of how to do this.
 
@@ -66,7 +66,7 @@ The last line tells our frame to automatically center itself in the middle of th
 
 *You can download a snapshot of the mod at this point [here]().*
 
-## Pressing The Button
+## Chapter 2: Pressing The Button
 
 Most interfaces will want to present both data and allow to user to interact with it. To allow for this interaction, you can add control surfaces like buttons, sliders, or textfields. When the user interacts with these, the game fires the appropriate event that you'll be able to catch. We'll start simple and add a button to our frame by adding this code to the bottom of the `on_player_created` event.
 
@@ -125,7 +125,7 @@ The remaining code is pretty straightforward. We get the global table of the pla
 
 *You can download a snapshot of the mod at this point [here]().*
 
-## Applying Yourself
+## Chapter 3: Applying Yourself
 
 At this point, you know how to create elements and how to hook up event listeners to them, but only barely. This chapter will apply what was shown before to a new situation, and bring up a new thing here or there. We'll add an interactive slider and textfield to give our lonely button a purpose and some company. We want to add them right next to the button, which is where our previously added flow named `controls_flow` comes in handy. Just add the following two lines to our `on_player_created` handler which add to the desired flow:
 
@@ -210,7 +210,7 @@ And that's it for this chapter, hopefully it has made you more confident in how 
 
 *You can download a snapshot of the mod at this point [here]().*
 
-## Putting Sprites Into Buttons
+## Chapter 4: Putting Sprites Into Buttons
 
 Our goal in this chapter is to put a row of sprite buttons into our interface, each showing one of the item sprites we listed in our `item_sprites` table. In addition, we want to allow the user to choose how many of those buttons are shown to them. Lucky us, we already have the infrastructure in place to do this! Our 'slider and textfield'-combo does exactly this, and even saves the result to `global`.
 
@@ -264,7 +264,7 @@ The buttons will pop in and out of existence as you move the slider. Isn't that 
 
 *You can download a snapshot of the mod at this point [here]().*
 
-## Tagging Your Buttons
+## Chapter 5: Tagging Your Buttons
 
 These pristine buttons are pretty, but don't actually serve any purpose yet. Kind of a problematic situation for something the user is supposed to push. Let's give them something to do, and even learn a thing or two along the way.
 
