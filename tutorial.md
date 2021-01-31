@@ -315,20 +315,30 @@ After making sure we react to the right event, we first extract the item-name of
 
 ![Screenshot of frame with one button selected](images/yellowness_selected.png)
 
-And there you go. You now know the basics of creating custom Factorio interfaces. This base of knowledge should be enough for you to go out on your own. There is however still more to learn. In these five chapters, some shortcuts were taken to not hit you over the head with too much information at once. This means that the code produced so far is not actually the most proper way to do things in some aspects. In the following, we'll go into some more advanced aspects to make the interface and code just that little bit nicer.
+Now you know how to work with a variable amount of elements and how to use `tags` to your advantage. We only saw one use for `tags` here, they can be useful in many other situations a well, so don't hesitate to use them if you think they'd be useful. This was the last chapter that adds more functionality to our little interface. In the following two, we'll focus on some of the supporting infrastructure that is needed to create an interface that feels native to the game.
 
 *You can download a snapshot of the mod at this point [here]().*
 
-## Chapter 6: Niceification [crap title]
+## Chapter 6: Making Things Nice
 
+- Note that when using `on_player_created` to build GUI, you also need to do the same `on_init`
 - Move creation to a new function and use global to initialize GUI
 - Use hotkey/shortcut to toggle interface, that also builds it implicitly
 - Respond to `on_gui_closed` and set `player.opened`
+
+[...]. In the next and final chapter, we'll learn how to properly migrate your interfaces, which is important should you ever want to release an update to your mod.
+
+*You can download a snapshot of the mod at this point [here]().*
 
 ## Chapter 7: The Big Migration
 
 - Deleting interface on `on_config_changed` so it incorporates updated code
 - Save references to important elements in global, remove those too though `on_config_changed`
+- Also remove everything `on_player_removed`
+
+And that's it for the chapterized part of this tutorial. If you took all these lessons to heart, you should be able to make some proper interfaces for your mod. There is however a loose collection of advanced topics related to creating GUIs in Factorio. They are not strictly necessary to know, and only relevant in specific situations, but maybe you'll be in need of one of them at some point. Feel free to take a look.
+
+*You can download a snapshot of the mod at this point [here]().*
 
 ## Topic: Looking For Inspiration
 
@@ -337,9 +347,9 @@ And there you go. You now know the basics of creating custom Factorio interfaces
 - Look at Rai's style guide
 - Ask on the Discord
 
-## Topic: mod-gui
-
 ## Topic: Style Prototypes
+
+## Topic: mod-gui
 
 ## Topic: Manipulating Vanilla GUIs
 
