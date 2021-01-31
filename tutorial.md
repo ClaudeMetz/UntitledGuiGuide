@@ -295,7 +295,7 @@ button_table.add{type="sprite-button", sprite=("item/" .. sprite_name), tags={ac
 
 There's two more things that are important to note here. First, we couldn't use the exact same name for all of our buttons, ie. all give them the `ugg_select_button` name. The game doesn't allow two elements with the same parent to have identical names, as that would obviously break our ability to index them by name. So we need to put that `name` into a tag as well, which is just as valid. Second, we used the `action` moniker to indicate which group this button belongs to. This is by no means an entrenched convention, you can use any format for this you like. Just make sure that it doesn't collide with other mods' usage of tags, as again, your `on_gui_click` event fires for any mod's button, not just your own.
 
-Finally, we can get to the event handler itself, which is mostly straightforward. As we already have an `on_gui_click` handler, we can't add a second one, as that would override the first one. We need to expand our existing handler. Below is the whole, updated handler, with some of the unchanged code cut out:
+Finally, we can get to the event handler itself, which is mostly straightforward. As we already have an `on_gui_click` handler, we can't add a second one, as that would override the first one. We need to expand our existing handler. Below is the whole, updated handler, with some of the unchanged code left out:
 
 ```lua
 script.on_event(defines.events.on_gui_click, function(event)
@@ -319,29 +319,28 @@ And there you go. You now know the basics of creating custom Factorio interfaces
 
 *You can download a snapshot of the mod at this point [here]().*
 
-## Chapter 6: Niceification
+## Chapter 6: Niceification [crap title]
 
-[[hotkeys, shortcuts to open, responding to E/ESC, use global data in builder cause it's cleaner, etc]]
+- Move creation to a new function and use global to initialize GUI
+- Use hotkey/shortcut to toggle interface, that also builds it implicitly
+- Respond to `on_gui_closed` and set `player.opened`
 
 ## Chapter 7: The Big Migration
 
-[[Basically deleting and recreating all your guis on migration + savings refs in global]]
+- Deleting interface on `on_config_changed` so it incorporates updated code
+- Save references to important elements in global, remove those too though `on_config_changed`
 
 ## Topic: Looking For Inspiration
 
-[[Tell about looking at other mods, style guide, Ctrl+F5/F6, etc]]
+- Look at vanilla or mod interfaces to see the layering and styles used (Ctrl+F5/F6)
+- Look at other well-done mods' code to see how they do things/lots of 'correct' approaches
+- Look at Rai's style guide
+- Ask on the Discord
 
 ## Topic: mod-gui
-
-
 
 ## Topic: Style Prototypes
 
 ## Topic: Manipulating Vanilla GUIs
 
-[[
-You can not manipulate any base game UI in any direct way, as they are programmed in C++ using a different system. There are however a couple of indirect ways to influence them using a mod:
-
-- You can entirely replace
-- You can add relative elements
-]]
+- Can't manipulate directly, but can do two things: entirely replace, or add relative elements
