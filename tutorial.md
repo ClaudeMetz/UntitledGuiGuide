@@ -401,10 +401,92 @@ With these issues taken care of, our mod now works properly in multiplayer and i
 
 ## Chapter 7: Creating a Shortcut
 
-- Use hotkey/shortcut to toggle interface, that also builds it implicitly
-- Respond to `on_gui_closed` and set `player.opened`(, handle `on_gui_opened` ?)
+This whole interface of ours works pretty well by this point, but it's a very particular type of GUI: One that's always on the screen. This is perfectly fine for some types of mods of course, but many will want to allow the user to toggle its visibility themselves. For this, some more infrastructure is needed.
 
-[...]. In the next and final chapter, we'll learn how to properly migrate your interfaces, which is important should you ever want to release an update to your mod.
+Now, there's several ways to give the user the ability to to bring up or hide your interface. One of them is the `mod-gui` system provided by the game, which is covered as a topic of this tutorial. Another is to add a [quickbar shortcut](https://wiki.factorio.com/Prototype/Shortcut). The approach we'll take here though is to add a simple keyboard shortcut to our mod.
+
+The game calls these 'custom inputs'. They are added in the data stage, meaning the game itself needs to be restarted for any changes to this code to take effect. We won't go into the details of their definition here, please take a look at their [wiki article](https://wiki.factorio.com/Prototype/CustomInput) if you want to know more. We'll just add this bit of code to the existing `data.lua` file:
+
+```lua
+data:extend({
+    {
+        type = "custom-input",
+        name = "ugg_toggle_interface",
+        key_sequence = "CONTROL + I",
+        order = "a"
+    }
+})
+```
+
+The relevant information here is that the shortcut is called `ugg_toggle_interface`, and that its keybind is `Control + Y`. When the user hits the chosen keyboard shortcut, an event with the name `ugg_toggle_interface` will be fired for us to catch. So, let's do that, back in the world of `control.lua`:
+
+```lua
+script.on_event("ugg_toggle_interface", function(event)
+    local player = game.get_player(event.player_index)
+    toggle_interface(player)
+end)
+```
+
+As you can see, the event registration is pretty much the same as with the other, 'standard' events we registered before. The only difference is that we don't use a [define](https://lua-api.factorio.com/latest/defines.html#defines.events) to let the game know which event we care about, but simply the name of the custom input we defined previously.
+
+The event handler is simple: Get a reference to the player that just used this keyboard shortcut, and call the function to toggle our interface. If you don't recognize this function, don't worry, we haven't actually defined it yet. Let's do that now, adding it to the local functions towards the beginning of `control.lua`:
+
+```lua
+local function toggle_interface(player)
+    local main_frame = player.gui.screen.ugg_main_frame
+
+    if main_frame == nil then
+        build_interface(player)
+    else
+        main_frame.destroy()
+    end
+end
+```
+
+Let's go through this: First, it tries to aquire a reference to our top level `frame` in the same way we did in our `on_gui_text/value_changed` handlers from before. Then, it checks whether that frame actually exists. If our reference is `nil`, it means there is no frame to be found by the name of `ugg_main_frame`. In that case, we want to create it with our trusty `build_interface()` function. If it does exist however, we want to [destroy](https://lua-api.factorio.com/latest/LuaGuiElement.html#LuaGuiElement.destroy) it, removing the frame and anything it contains. This simple logic will make it so the user can toggle between seeing the interface and hiding it.
+
+This is a very general function as it can be called whether the interface is shown or not, converting it from one state to the other. We could alternatively use the `build_interface()` function directly, and use `destroy()` otherwise, but this approach makes it very simple for us. The function is easily useable in different contexts as we'll see later on in this chapter.
+
+At this point, it is important to note that we don't necessarily need to `destroy()` our interface every time. We could alternatively set it to not be [visible](https://lua-api.factorio.com/latest/LuaGuiElement.html#LuaGuiElement.visible) when the user doesn't want to see it. This saves a bit of performance since we don't need to run through our interface builder every time. It can however increase complexity in some ways. We won't go into these in this tutorial, but know that it is a totally valid approach.
+
+Switching to this approach of giving the user control about when the interface is shown necessitates another change. We need to make sure we don't build the interface by default for every player anymore, since we want it to not be shown at the start. To accomplish this, we simply remove the calls to `build_interface()` from both our `on_init` and `on_player_created` handlers. This way, the GUI can only be made visible through the `ugg_toggle_interface` event. Note that the calls to `initialize_global()` are still necessary of course, since our values in `global` are independent of whether the interface is actually on screen or not.
+
+Start a new game with these changes made and give it a try. The interface should now not be visible at first, and plop into existence when you use the appropriate keyboard shortcut. Very neat. Having this type of window that can be opened and closed brings some other expectations of the user with it though. Most notably, the user will expect that pressing `E` or `Escape` closes the GUI. This does not happen automatically, but thankfully the game provides us with a hook to make it work smoothly.
+
+There are two pieces to this puzzle, the first one being [player.opened](https://lua-api.factorio.com/latest/LuaControl.html#LuaControl.opened). It's a special attribute that every player has, and it contains information about which interface they currently have open. How it works exactly is a bit more complicated, but we'll focus on the parts that matters to us.
+
+The basic principle here is that any mod that wants to open an interface sets `player.opened` to a reference of the newly created GUI. This has two consequences: For one, it lets us know when the user presses 'E' or 'Escape' by firing the [on_gui_closed](https://lua-api.factorio.com/latest/events.html#on_gui_closed) event. We can use that to make the GUI react properly to this user action, which we'll do in a bit. Secondly, registering our GUI to be the one in `player.opened` calls the `on_gui_closed` event for the GUI that was previously registered, if there is any. This makes it so there can only ever be one interface that's 'in focus', avoiding tons of overlapping windows.
+
+The actual implementation of this then is rather straightforward. We just extend our `build_interface()` function to also make sure that `player.opened` is set. The function should now look something like this, with the only addition being `player.opened = main_frame`:
+
+```lua
+local function build_interface(player)
+    local screen_element = player.gui.screen
+    local main_frame = screen_element.add{type="frame", name="ugg_main_frame", caption={"ugg.hello_world"}}
+    main_frame.style.size = {385, 165}
+    main_frame.auto_center = true
+    player.opened = main_frame
+
+    [ ... ]
+end
+```
+
+The second piece we need to add is the aforementioned `on_gui_closed` event. It is fired every time a mod window should close, be it because the user closed it with 'E' or 'Escape', or because it was booted out of `player.opened`. Either way, we need to make sure we get rid of our interface when the game asks us to:
+
+```lua
+script.on_event(defines.events.on_gui_closed, function(event)
+    if event.element.name == "ugg_main_frame" then
+        local player = game.get_player(event.player_index)
+        toggle_interface(player)
+    end
+end)
+```
+
+This code is pretty straightforward: We need to first make sure that the event is actually intended for our GUI by checking the name of the element that the event gives us. This is similar to what we did in our `on_gui_text/value_changed` handlers. Then, we simply call the `toggle_interface()` function, which will get rid of our interface. We know this because when we get this event, the interface has to currently be shown, so the event will always destroy it.
+
+We could just as easily write `event.element.destroy()` here, as that would have the exact same effect. We re-use our `toggle_interface()` function though because this makes our code more resilient to changes, in the same vein as the modifications we made in chapter 6. Should we decide at any point that we wanted to do something different to get rid of our interface, like hiding it instead of destroying it, we'll only have to change the code in one place and have the effects propagate throughout the mod.
+
+Load up these changes and try closing your interface with 'E', or open another one while ours is open. It'll now close itself properly, like you'd expect. We now have a native-feeling dialog that responds to common user actions and plays well with other mods. In the next and final chapter, we'll learn how to properly migrate your interfaces, which is important should you ever want to release an update to your mod.
 
 *You can download a snapshot of the mod at this point [here]().*
 
@@ -417,6 +499,8 @@ With these issues taken care of, our mod now works properly in multiplayer and i
 And that's it for the chapterized part of this tutorial. If you took all these lessons to heart, you should be able to make some proper interfaces for your mod. There is however a loose collection of advanced topics related to creating GUIs in Factorio. They are not strictly necessary to know, and only relevant in specific situations, but maybe you'll be in need of one of them at some point. Feel free to take a look.
 
 *You can download a snapshot of the mod at this point [here]().*
+
+----
 
 ## Topic: Looking For Inspiration
 

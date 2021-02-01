@@ -29,3 +29,12 @@ styles["ugg_deep_frame"] = {
     right_margin = 8,
     bottom_margin = 4
 }
+
+data:extend({
+    {
+        type = "custom-input",
+        name = "ugg_toggle_interface",
+        key_sequence = "CONTROL + I",
+        order = "a"
+    }
+})

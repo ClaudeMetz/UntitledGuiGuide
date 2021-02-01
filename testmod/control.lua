@@ -21,6 +21,7 @@ local function build_interface(player)
     local main_frame = screen_element.add{type="frame", name="ugg_main_frame", caption={"ugg.hello_world"}}
     main_frame.style.size = {385, 165}
     main_frame.auto_center = true
+    player.opened = main_frame
 
     local content_frame = main_frame.add{type="frame", name="content_frame", direction="vertical",
       style="ugg_content_frame"}
@@ -48,6 +49,16 @@ local function initialize_global(player)
     global.players[player.index] = { controls_active = true, button_count = 0, selected_item = nil }
 end
 
+local function toggle_interface(player)
+    local main_frame = player.gui.screen.ugg_main_frame
+
+    if main_frame == nil then
+        build_interface(player)
+    else
+        main_frame.destroy()
+    end
+end
+
 -- Make sure the intro cinematic of freeplay doesn't play every time we restart
 -- This is just for convenience, don't worry if you don't understand how this works
 script.on_init(function()
@@ -61,14 +72,12 @@ script.on_init(function()
 
     for _, player in pairs(game.players) do
         initialize_global(player)
-        build_interface(player)
     end
 end)
 
 script.on_event(defines.events.on_player_created, function(event)
     local player = game.get_player(event.player_index)
     initialize_global(player)
-    build_interface(player)
 end)
 
 script.on_event(defines.events.on_gui_click, function(event)
@@ -119,4 +128,16 @@ script.on_event(defines.events.on_gui_text_changed, function(event)
 
         build_sprite_buttons(player)
     end
+end)
+
+script.on_event(defines.events.on_gui_closed, function(event)
+    if event.element.name == "ugg_main_frame" then
+        local player = game.get_player(event.player_index)
+        toggle_interface(player)
+    end
+end)
+
+script.on_event("ugg_toggle_interface", function(event)
+    local player = game.get_player(event.player_index)
+    toggle_interface(player)
 end)
