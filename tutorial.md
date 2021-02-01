@@ -100,7 +100,7 @@ This is how your code for it would normally look like. In the case of this tutor
 Then, for each player that joins, we need to give them their own space in that table. We have already registered the perfect event to do so: `on_player_created`, to the beginning of which we'll add the following line:
 
 ```lua
-global.players[event.player_index] = { controls_active = true }
+global.players[player.index] = { controls_active = true }
 ```
 
 This does two things at once: It creates the player's table in global *and* initializes our `controls_active` variable to `true` right away. We index `global.players` with the player's index, as that is an easy and unique way to identify players, and it's also what every GUI event gives us by default.
@@ -130,7 +130,7 @@ The remaining code is pretty straightforward. We get the global table of the pla
 At this point, you know how to create elements and how to hook up event listeners to them, but only barely. This chapter will apply what was shown before to a new situation, and bring up a new thing here or there. We'll add an interactive slider and textfield to give our lonely button a purpose and some company. We want to add them right next to the button, which is where our previously added flow named `controls_flow` comes in handy. Just add the following two lines to our `on_player_created` handler which add to the desired flow:
 
 ```lua
-controls_flow.add{type="slider", name="ugg_controls_slider", minimum_value=0, maximum_value=#item_sprites, style="notched_slider"}
+controls_flow.add{type="slider", name="ugg_controls_slider", value=0, minimum_value=0, maximum_value=#item_sprites, style="notched_slider"}
 controls_flow.add{type="textfield", name="ugg_controls_textfield", text="0", numeric=true, allow_decimal=false, allow_negative=false, style="ugg_controls_textfield"}
 ```
 
@@ -201,7 +201,7 @@ The proceedure for both is similar: First, get our `controls_flow` that houses t
 You'll notice that we also saved the value of our slider/textfield to a new `global` variable called `button_count` which we'll use in the next chapter. Same as with `controls_active`, we'll want to initialize a value for that field in `on_player_created`, so we add it in the appropriate spot:
 
 ```lua
-global.players[event.player_index] = { controls_active = true, button_count = 0 }
+global.players[player.index] = { controls_active = true, button_count = 0 }
 ```
 
 Now, we can play with our new control surfaces and they'll mirror each other properly. How neat is that. There are other things that we could add to make the interaction even cleaner, like making sure the textfield always shows a number that's within the range of the slider, but for this tutorial we'll stop here.
@@ -273,7 +273,7 @@ What we're going to do is pretty straightforward: We'll let the user select one 
 What we need for that is another global variable to store the name of the currently selected item in. We'll call it `selected_item` and it'll start off as `nil`, meaning nothing is selected at first. So, we expand the global table initialization we do `on_player_created`:
 
 ```lua
-global.players[event.player_index] = { controls_active = true, button_count = 0, selected_item = nil }
+global.players[player.index] = { controls_active = true, button_count = 0, selected_item = nil }
 ```
 
 Then, we need to make sure that the buttons reflect their selected-ness properly. We do this in the function that builds our buttons, by checking the content of our global `selected_item` variable and assigning the appropriate style. Update the `build_sprite_buttons()`-function by adding the style-decision variable `button_style`:
@@ -295,7 +295,7 @@ button_table.add{type="sprite-button", sprite=("item/" .. sprite_name), tags={ac
 
 There's two more things that are important to note here. First, we couldn't use the exact same name for all of our buttons, ie. all give them the `ugg_select_button` name. The game doesn't allow two elements with the same parent to have identical names, as that would obviously break our ability to index them by name. So we need to put that `name` into a tag as well, which is just as valid. Second, we used the `action` moniker to indicate which group this button belongs to. This is by no means an entrenched convention, you can use any format for this you like. Just make sure that it doesn't collide with other mods' usage of tags, as again, your `on_gui_click` event fires for any mod's button, not just your own.
 
-Finally, we can get to the event handler itself, which is mostly straightforward. As we already have an `on_gui_click` handler, we can't add a second one, as that would override the first one. We need to expand our existing handler. Below is the whole, updated handler, with some of the unchanged code left out:
+Finally, we can get to the event handler itself, which is mostly straightforward. As we already have an `on_gui_click` handler, we can't add a second one, as that would override the first one. Instead, we need to expand our existing handler. This is the whole, updated handler, with some of the unchanged code left out:
 
 ```lua
 script.on_event(defines.events.on_gui_click, function(event)
@@ -315,22 +315,100 @@ After making sure we react to the right event, we first extract the item-name of
 
 ![Screenshot of frame with one button selected](images/yellowness_selected.png)
 
-Now you know how to work with a variable amount of elements and how to use `tags` to your advantage. We only saw one use for `tags` here, they can be useful in many other situations a well, so don't hesitate to use them if you think they'd be useful. This was the last chapter that adds more functionality to our little interface. In the following two, we'll focus on some of the supporting infrastructure that is needed to create an interface that feels native to the game.
+Now you know how to work with a variable amount of elements and how to use `tags` to your advantage. We only saw one use for `tags` here, they can be useful in many other situations a well, so don't hesitate to use them if you think they'd be useful. Next, it's time to correct some of the 'mistakes' we made so far in this tutorial.
 
 *You can download a snapshot of the mod at this point [here]().*
 
-## Chapter 6: Making Things Nice
+## Chapter 6: Caring About Other People
 
-- Note that when using `on_player_created` to build GUI, you also need to do the same `on_init`
-- Move creation to a new function and use global to initialize GUI
+In the previous chapters, we took some shortcuts in how we handled our GUI to make things easier to explain. This chapter will clean them up, moving our little mod to be closer to production-ready.
+
+The biggest problem the current projects has that it builds everything `on_player_created`. This seems fine at first glance, since this way, every new player will get our interface and the `global` variables that go along with it. This neglects an important nuance though: What happens if the mod is added to a save half-way through? Existing players won't have our GUI since the `on_player_created` event has already happened for them by that point, since they obviously already exist. We want every player to see our interface of course, so we'll need to address that situation.
+
+The common solution for this is to, in addition to adding the interface for new players, add it for any already existing ones the moment our mod is added. The event to do this is [on_init](https://lua-api.factorio.com/latest/LuaBootstrap.html#LuaBootstrap.on_init), since it only runs the first time our mod runs in a certain save. In it, we'll run through all the existing players and set them up with the relevant things.
+
+Before we can do that though, we'll need to organize our code a bit. For one, we'll split the code that builds our GUI into its own local function, called `build_interface()`:
+
+```lua
+local function build_interface(player)
+    local screen_element = player.gui.screen
+    local main_frame = screen_element.add{type="frame", name="ugg_main_frame", caption={"ugg.hello_world"}}
+    main_frame.style.size = {385, 165}
+    main_frame.auto_center = true
+
+    local content_frame = main_frame.add{type="frame", name="content_frame", direction="vertical", style="ugg_content_frame"}
+    local controls_flow = content_frame.add{type="flow", name="controls_flow", direction="horizontal", style="ugg_controls_flow"}
+
+    local player_table = global.players[player.index]
+    local button_caption = (player_table.controls_active) and {"ugg.deactivate"} or {"ugg.activate"}
+    controls_flow.add{type="button", name="ugg_controls_toggle", caption=button_caption}
+
+    local initial_button_count = player_table.button_count
+    controls_flow.add{type="slider", name="ugg_controls_slider", value=initial_button_count, minimum_value=0, maximum_value=#item_sprites, style="notched_slider"}
+    controls_flow.add{type="textfield", name="ugg_controls_textfield", text=tostring(initial_button_count), numeric=true, allow_decimal=false, allow_negative=false, style="ugg_controls_textfield"}
+
+    local button_frame = content_frame.add{type="frame", name="button_frame", direction="horizontal", style="ugg_deep_frame"}
+    button_frame.add{type="table", name="button_table", column_count=#item_sprites, style="filter_slot_table"}
+
+    build_sprite_buttons(player)
+end
+```
+
+At the same time we move this code over, we fixed something that's bad form when building interfaces. You might have noticed that we always build our button with the `caption` set to `"{fp.deactivate}"`. This worked out since we also defined the player's `global` value `controls_active` to start off as `true`. The problem created by this though is that should we decide to change the initial value of `controls_active` at some point, we need to remember to also change the button's `caption` at the same time. This is bad for maintainability as it is a likely source of bugs. It's smarter to just avoid this being a problem in the first place.
+
+We apply the same logic to our slider and textfield, both of which always started out at `0` previously: They now incorporate the `button_count` variable we define in `global`. Third third and last piece of the interface is actually already resistant to us changing the initial value of `selected_item`, since it looked at global when building itself from the start. No changes to `build_sprite_buttons()` are thus necessary.
+
+While we're moving things around, we'll do the same thing for the code that actually initializes `global` for a given player, since that, too, needs to be done for every player that's already present in a save:
+
+```lua
+local function initialize_global(player)
+    global.players[player.index] = { controls_active = true, button_count = 0, selected_item = nil }
+end
+```
+
+With these two functions in place, we can adjust both our `on_player_created` and our `on_init` handlers. They are now pretty simple as they just need to call the existing functionality, starting with the new code for `on_player_created`:
+
+```lua
+script.on_event(defines.events.on_player_created, function(event)
+    local player = game.get_player(event.player_index)
+    initialize_global(player)
+    build_interface(player)
+end)
+```
+
+The order of these two function calls matter, now that the code looks at `global` for how to configure the initial interface: The player's `global` needs to be filled in before `build_interface()` can use it.
+
+Then, we do much the same `on_init`, except that we build our GUI for every player that's already present, which can find by looping through `game.players`. We still initialize the `global.players` table, same as before:
+
+```lua
+script.on_init(function()
+    [ ... ]
+
+    global.players = {}
+
+    for _, player in pairs(game.players) do
+        initialize_global(player)
+        build_interface(player)
+    end
+end)
+```
+
+Note that the local functions `build_interface()` and `initialize_global()` need to be defined before any event handlers that call them due to how locals work in lua. In the same vein, `build_sprite_buttons()` needs to be defined before `build_interface()` is. In general, your file should be structured to first define all local functions in the appropriate order, then define the event handlers that rely upon these local functions. If your project gets bigger, you'll want to think about splitting your functionality into several files, but that's not something this tutorial will go into.
+
+With these issues taken care of, our mod now works properly in multiplayer and is less fragile should we want to change the initial state of the interface. The next chapter can focus on another important part of GUI design: Binding our interface to a keyboard shortcut the player can use, and making its behavior fit in better with base game interfaces.
+
+*You can download a snapshot of the mod at this point [here]().*
+
+## Chapter 7: Creating a Shortcut
+
 - Use hotkey/shortcut to toggle interface, that also builds it implicitly
-- Respond to `on_gui_closed` and set `player.opened`
+- Respond to `on_gui_closed` and set `player.opened`(, handle `on_gui_opened` ?)
 
 [...]. In the next and final chapter, we'll learn how to properly migrate your interfaces, which is important should you ever want to release an update to your mod.
 
 *You can download a snapshot of the mod at this point [here]().*
 
-## Chapter 7: The Big Migration
+## Chapter 8: The Big Migration
 
 - Deleting interface on `on_config_changed` so it incorporates updated code
 - Save references to important elements in global, remove those too though `on_config_changed`
@@ -343,7 +421,8 @@ And that's it for the chapterized part of this tutorial. If you took all these l
 ## Topic: Looking For Inspiration
 
 - Look at vanilla or mod interfaces to see the layering and styles used (Ctrl+F5/F6)
-- Look at other well-done mods' code to see how they do things/lots of 'correct' approaches
+- Look at other well-done mods' code to see how they do things
+- lots of 'correct' approaches!
 - Look at Rai's style guide
 - Ask on the Discord
 

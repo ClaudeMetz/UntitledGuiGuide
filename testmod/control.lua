@@ -1,15 +1,3 @@
--- Make sure the intro cinematic of freeplay doesn't play every time we restart
--- This is just for convenience, don't worry if you don't understand how this works
-script.on_init(function()
-    local freeplay = remote.interfaces["freeplay"]
-    if freeplay then  -- Disable freeplay popup-message
-        if freeplay["set_skip_intro"] then remote.call("freeplay", "set_skip_intro", true) end
-        if freeplay["set_disable_crashsite"] then remote.call("freeplay", "set_disable_crashsite", true) end
-    end
-
-    global.players = {}
-end)
-
 local item_sprites = {"inserter", "transport-belt", "stone-furnace", "assembling-machine-3",
   "logistic-chest-storage", "sulfur", "utility-science-pack", "laser-turret"}
 
@@ -28,10 +16,7 @@ local function build_sprite_buttons(player)
     end
 end
 
-script.on_event(defines.events.on_player_created, function(event)
-    global.players[event.player_index] = { controls_active = true, button_count = 0, selected_item = nil }
-
-    local player = game.get_player(event.player_index)
+local function build_interface(player)
     local screen_element = player.gui.screen
     local main_frame = screen_element.add{type="frame", name="ugg_main_frame", caption={"ugg.hello_world"}}
     main_frame.style.size = {385, 165}
@@ -42,11 +27,14 @@ script.on_event(defines.events.on_player_created, function(event)
     local controls_flow = content_frame.add{type="flow", name="controls_flow", direction="horizontal",
       style="ugg_controls_flow"}
 
-    controls_flow.add{type="button", name="ugg_controls_toggle", caption={"ugg.deactivate"}}
+    local player_table = global.players[player.index]
+    local button_caption = (player_table.controls_active) and {"ugg.deactivate"} or {"ugg.activate"}
+    controls_flow.add{type="button", name="ugg_controls_toggle", caption=button_caption}
 
-    controls_flow.add{type="slider", name="ugg_controls_slider", minimum_value=0, maximum_value=#item_sprites,
-      style="notched_slider"}
-    controls_flow.add{type="textfield", name="ugg_controls_textfield", text="0", numeric=true,
+    local initial_button_count = player_table.button_count
+    controls_flow.add{type="slider", name="ugg_controls_slider", value=initial_button_count, minimum_value=0,
+      maximum_value=#item_sprites, style="notched_slider"}
+    controls_flow.add{type="textfield", name="ugg_controls_textfield", text=tostring(initial_button_count), numeric=true,
       allow_decimal=false, allow_negative=false, style="ugg_controls_textfield"}
 
     local button_frame = content_frame.add{type="frame", name="button_frame", direction="horizontal",
@@ -54,6 +42,33 @@ script.on_event(defines.events.on_player_created, function(event)
     button_frame.add{type="table", name="button_table", column_count=#item_sprites, style="filter_slot_table"}
 
     build_sprite_buttons(player)
+end
+
+local function initialize_global(player)
+    global.players[player.index] = { controls_active = true, button_count = 0, selected_item = nil }
+end
+
+-- Make sure the intro cinematic of freeplay doesn't play every time we restart
+-- This is just for convenience, don't worry if you don't understand how this works
+script.on_init(function()
+    local freeplay = remote.interfaces["freeplay"]
+    if freeplay then  -- Disable freeplay popup-message
+        if freeplay["set_skip_intro"] then remote.call("freeplay", "set_skip_intro", true) end
+        if freeplay["set_disable_crashsite"] then remote.call("freeplay", "set_disable_crashsite", true) end
+    end
+
+    global.players = {}
+
+    for _, player in pairs(game.players) do
+        initialize_global(player)
+        build_interface(player)
+    end
+end)
+
+script.on_event(defines.events.on_player_created, function(event)
+    local player = game.get_player(event.player_index)
+    initialize_global(player)
+    build_interface(player)
 end)
 
 script.on_event(defines.events.on_gui_click, function(event)
