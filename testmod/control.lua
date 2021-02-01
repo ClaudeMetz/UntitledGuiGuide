@@ -147,7 +147,7 @@ script.on_event(defines.events.on_gui_text_changed, function(event)
 end)
 
 script.on_event(defines.events.on_gui_closed, function(event)
-    if event.element.name == "ugg_main_frame" then
+    if event.element and event.element.name == "ugg_main_frame" then
         local player = game.get_player(event.player_index)
         toggle_interface(player)
     end

@@ -488,14 +488,14 @@ The second piece we need to add is the aforementioned `on_gui_closed` event. It 
 
 ```lua
 script.on_event(defines.events.on_gui_closed, function(event)
-    if event.element.name == "ugg_main_frame" then
+    if event.element and event.element.name == "ugg_main_frame" then
         local player = game.get_player(event.player_index)
         toggle_interface(player)
     end
 end)
 ```
 
-This code is pretty straightforward: We need to first make sure that the event is actually intended for our GUI by checking the name of the element that the event gives us. This is similar to what we did in our `on_gui_text/value_changed` handlers. Then, we simply call the `toggle_interface()` function, which will get rid of our interface. We know this because when we get this event, the interface has to currently be shown, so the event will always destroy it.
+This code is pretty straightforward: We need to first make sure that the event is actually intended for our GUI by checking that the event even gives us an element and if so, that that name corresponds to our GUI. This is similar to what we did in our `on_gui_text/value_changed` handlers. Then, we simply call the `toggle_interface()` function, which will get rid of our interface. We know this because when we get this event, the interface has to currently be shown, so the event will always destroy it.
 
 We could just as easily write `event.element.destroy()` here, as that would have the exact same effect. We re-use our `toggle_interface()` function though because this makes our code more resilient to changes, in the same vein as the modifications we made in chapter 6. Should we decide at any point that we wanted to do something different to get rid of our interface, like hiding it instead of destroying it, we'll only have to change the code in one place and have the effects propagate throughout the mod.
 
