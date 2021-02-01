@@ -110,11 +110,11 @@ With that out of the way, we can finally get to registering our [on_gui_click](h
 ```lua
 script.on_event(defines.events.on_gui_click, function(event)
     if event.element.name == "ugg_controls_toggle" then
-        local player_table = global.players[event.player_index]
-        player_table.controls_active = not player_table.controls_active
+        local player_global = global.players[event.player_index]
+        player_global.controls_active = not player_global.controls_active
 
         local control_toggle = event.element
-        control_toggle.caption = (player_table.controls_active) and {"ugg.deactivate"} or {"ugg.activate"}
+        control_toggle.caption = (player_global.controls_active) and {"ugg.deactivate"} or {"ugg.activate"}
     end
 end)
 ```
@@ -155,8 +155,8 @@ For this, we'll need to expand our `on_gui_click` handler, more specifically the
 ```lua
 local player = game.get_player(event.player_index)
 local controls_flow = player.gui.screen.ugg_main_frame.content_frame.controls_flow
-controls_flow.ugg_controls_slider.enabled = player_table.controls_active
-controls_flow.ugg_controls_textfield.enabled = player_table.controls_active
+controls_flow.ugg_controls_slider.enabled = player_global.controls_active
+controls_flow.ugg_controls_textfield.enabled = player_global.controls_active
 ```
 
 This reveals why we gave every one of our elements a proper name, even if their name won't be checked against in any events: It allows us to get a reference to any element we want by following the nested structure of our interface, from the base element `screen` over frames and flows to our `controls_flow` element at last. With that, we can make one last jump to the slider and textfield and set their [enabled](https://lua-api.factorio.com/latest/LuaGuiElement.html#LuaGuiElement.enabled)-state appropriately.
@@ -173,11 +173,12 @@ Then, we want to sync up our slider and textfield. To do that, we'll need to lis
 script.on_event(defines.events.on_gui_value_changed, function(event)
     if event.element.name == "ugg_controls_slider" then
         local player = game.get_player(event.player_index)
-        local controls_flow = player.gui.screen.ugg_main_frame.content_frame.controls_flow
+        local player_global = global.players[player.index]
 
         local new_button_count = event.element.slider_value
-        global.players[event.player_index].button_count = new_button_count
+        player_global.button_count = new_button_count
 
+        local controls_flow = player.gui.screen.ugg_main_frame.content_frame.controls_flow
         controls_flow.ugg_controls_textfield.text = tostring(new_button_count)
     end
 end)
@@ -185,18 +186,20 @@ end)
 script.on_event(defines.events.on_gui_text_changed, function(event)
     if event.element.name == "ugg_controls_textfield" then
         local player = game.get_player(event.player_index)
-        local controls_flow = player.gui.screen.ugg_main_frame.content_frame.controls_flow
+        local player_global = global.players[player.index]
 
         local new_button_count = tonumber(event.element.text) or 0
         local capped_button_count = math.min(new_button_count, #item_sprites)
-        global.players[event.player_index].button_count = capped_button_count
+        player_global.button_count = capped_button_count
 
+        local controls_flow = player.gui.screen.ugg_main_frame.content_frame.controls_flow
         controls_flow.ugg_controls_slider.slider_value = capped_button_count
     end
 end)
 ```
 
-The proceedure for both is similar: First, get our `controls_flow` that houses the slider and textfield elements. Then, depending on which one we are talking about, read their value appropriately, making sure to convert the string that we read from the textfield to a number using `tonumber()` and convert it back to a string using `tostring()` when putting it into the textfield. We also need to make sure to limit the `button_count` so it doesn't exceed the size of our `item_sprites` array. The slider does this by design, but the textfield doesn't. It only restricts the user to positive integers, so we'll use `math.min()` to enfore a limit/cap. We also need to hedge against the user removing the textfield number entirely, so we'll just default to 0 in that case.
+!! This description is crap !!
+The proceedure for both is similar: First, depending on which one we are talking about, we read the value our of the event's element, making sure to convert the string that we read from the textfield to a number using `tonumber()` and convert it back to a string using `tostring()` when putting it into the textfield. We also need to make sure to limit the `button_count` so it doesn't exceed the size of our `item_sprites` array. The slider does this by design, but the textfield doesn't. It only restricts the user to positive integers, so we'll use `math.min()` to enfore a limit/cap. We also need to hedge against the user removing the textfield number entirely, so we'll just default to 0 in that case.
 
 You'll notice that we also saved the value of our slider/textfield to a new `global` variable called `button_count` which we'll use in the next chapter. Same as with `controls_active`, we'll want to initialize a value for that field in `on_player_created`, so we add it in the appropriate spot:
 
@@ -237,10 +240,10 @@ The function will be a file local one, as our intention is to call it from more 
 
 ```lua
 local function build_sprite_buttons(player)
+    local player_global = global.players[player.index]
+
     local button_table = player.gui.screen.ugg_main_frame.content_frame.button_frame.button_table
     button_table.clear()
-
-    local player_global = global.players[player.index]
 
     for index, sprite_name in ipairs(item_sprites) do
         if index > player_global.button_count then break end
@@ -331,6 +334,8 @@ Before we can do that though, we'll need to organize our code a bit. For one, we
 
 ```lua
 local function build_interface(player)
+    local player_global = global.players[player.index]
+
     local screen_element = player.gui.screen
     local main_frame = screen_element.add{type="frame", name="ugg_main_frame", caption={"ugg.hello_world"}}
     main_frame.style.size = {385, 165}
@@ -339,11 +344,10 @@ local function build_interface(player)
     local content_frame = main_frame.add{type="frame", name="content_frame", direction="vertical", style="ugg_content_frame"}
     local controls_flow = content_frame.add{type="flow", name="controls_flow", direction="horizontal", style="ugg_controls_flow"}
 
-    local player_table = global.players[player.index]
-    local button_caption = (player_table.controls_active) and {"ugg.deactivate"} or {"ugg.activate"}
+    local button_caption = (player_global.controls_active) and {"ugg.deactivate"} or {"ugg.activate"}
     controls_flow.add{type="button", name="ugg_controls_toggle", caption=button_caption}
 
-    local initial_button_count = player_table.button_count
+    local initial_button_count = player_global.button_count
     controls_flow.add{type="slider", name="ugg_controls_slider", value=initial_button_count, minimum_value=0, maximum_value=#item_sprites, style="notched_slider"}
     controls_flow.add{type="textfield", name="ugg_controls_textfield", text=tostring(initial_button_count), numeric=true, allow_decimal=false, allow_negative=false, style="ugg_controls_textfield"}
 
@@ -394,6 +398,14 @@ end)
 ```
 
 Note that the local functions `build_interface()` and `initialize_global()` need to be defined before any event handlers that call them due to how locals work in lua. In the same vein, `build_sprite_buttons()` needs to be defined before `build_interface()` is. In general, your file should be structured to first define all local functions in the appropriate order, then define the event handlers that rely upon these local functions. If your project gets bigger, you'll want to think about splitting your functionality into several files, but that's not something this tutorial will go into.
+
+One last, unrelated thing that should be brought up is the case of a player leaving the game permanently. This is pretty rare, but we should clean up after them properly. Currently, a leaving player's entry in the `global` table would be left behind, polluting it unnessecarily. To prevent this, we need to listen to the [on_player_removed](https://lua-api.factorio.com/latest/events.html#on_player_removed) event and just get rid of their entry by setting it to `nil`:
+
+```lua
+script.on_event(defines.events.on_player_removed, function(event)
+    global.players[event.player_index] = nil
+end)
+```
 
 With these issues taken care of, our mod now works properly in multiplayer and is less fragile should we want to change the initial state of the interface. The next chapter can focus on another important part of GUI design: Binding our interface to a keyboard shortcut the player can use, and making its behavior fit in better with base game interfaces.
 
@@ -465,6 +477,7 @@ local function build_interface(player)
     local main_frame = screen_element.add{type="frame", name="ugg_main_frame", caption={"ugg.hello_world"}}
     main_frame.style.size = {385, 165}
     main_frame.auto_center = true
+
     player.opened = main_frame
 
     [ ... ]
@@ -492,9 +505,103 @@ Load up these changes and try closing your interface with 'E', or open another o
 
 ## Chapter 8: The Big Migration
 
-- Deleting interface on `on_config_changed` so it incorporates updated code
-- Save references to important elements in global, remove those too though `on_config_changed`
-- Also remove everything `on_player_removed`
+One last topic we haven't touched on are migrations. With GUIs, as with most other mods, there are some considerations to be made when you release updates for your mod. You need to consider the case where you update how some part of your interface works, and make sure this doesn't cause issues for saves that had a previous version of your mod running.
+
+Taking the tutorial GUI as en example, imagine the following scenario: A player has the interface open and saves the map. Then, he quits and updates the mod. With the update, you removed the activation button because you didn't like it anymore. When the user reloads his previous save, the old GUI will still be open, and it'll still have the button in there. This is because GUIs persist between saves, and are only removed when you explicitly destroy them. Then, when the user presses this left-over button, it will either do nothing, or in some situations, even crash the game, because along with the button, you of course removed all the code handling user actions on it.
+
+This simple situation is just to illustrate the kind of problems that can come up when you make changes, often without you noticing until it's too late and the update is already in users's hands. There is a general solution to this, thankfully. You can detect when your mod has been updated between now and the last time the save was loaded, and just destroy any of your GUIs at that point. This way, when the user brings it up from that point on, it'll run the updated builder function (without the button in our case) and all will be well.
+
+To accomplish this, the game provides the very useful [on_configuration_changed](https://lua-api.factorio.com/latest/LuaBootstrap.html#LuaBootstrap.on_configuration_changed) event. It is called when the save is loaded up and the game has been updated or any mod has been added, removed or updated. We'll register it in the following way:
+
+```lua
+script.on_configuration_changed(function(data)
+    if data.mod_changes["UntitledGuiGuide"] then
+        for _, player in pairs(game.players) do
+            local main_frame = player.gui.screen.main_frame
+            if main_frame ~= nil then toggle_interface() end
+        end
+    end
+end)
+```
+
+This code first makes sure that the version of our mod has actually changed, because as mentioned, the event is also fired for a number of other reasons. This step could be skipped though. Then, we go through every player on this save and remove our GUI from them, if they currently have it open, again re-using our `toggle_interface()` function. And that's it; You won't have to worry about mistakenly keeping around old version of your interface anymore.
+
+Now that we have a way to migrate our GUIs, there's something else about our code that we can simplify, should we want to. Note that the method we'll have a look at now is not necessarily better than what we do currently, but it's an alternative approach you can take if you prefer it.
+
+Up until now, when we needed a reference to one of our GUI elements, we'd traverse the tree starting at `player.gui.screen`. This is a bit clumsy, and pretty fragile to changes in our interface layout. The alternative is to save the elements we want to refer back to in `global`. This approach requires some more book-keeping, but has some advantages. Let's take a look at how to make this work.
+
+The first step is to give ourselves a place in `global` where we can neatly store the references to the important elements. In our case, we'll add a table to each player's `global` and simply call it `elements`. To do so, we need to update the `initialize_global()` function:
+
+```lua
+local function initialize_global(player)
+    global.players[player.index] = { controls_active = true, button_count = 0, selected_item = nil, elements = {} }
+end
+```
+
+Then, we need to populate that table. We do so the moment we create the elements, which is in `build_interface()`:
+
+```lua
+local function build_interface(player)
+    local player_global = global.players[player.index]
+
+    local screen_element = player.gui.screen
+    local main_frame = screen_element.add{type="frame", name="ugg_main_frame", caption={"ugg.hello_world"}}
+    main_frame.style.size = {385, 165}
+    main_frame.auto_center = true
+
+    player.opened = main_frame
+    player_global.elements.main_frame = main_frame
+
+    local content_frame = main_frame.add{type="frame", name="content_frame", direction="vertical", style="ugg_content_frame"}
+    local controls_flow = content_frame.add{type="flow", name="controls_flow", direction="horizontal", style="ugg_controls_flow"}
+
+    local button_caption = (player_global.controls_active) and {"ugg.deactivate"} or {"ugg.activate"}
+    controls_flow.add{type="button", name="ugg_controls_toggle", caption=button_caption}
+
+    local initial_button_count = player_global.button_count
+    player_global.elements.controls_slider = controls_flow.add{type="slider", name="ugg_controls_slider", value=initial_button_count, minimum_value=0, maximum_value=#item_sprites, style="notched_slider"}
+    player_global.elements.controls_textfield = controls_flow.add{type="textfield", name="ugg_controls_textfield", text=tostring(initial_button_count), numeric=true, allow_decimal=false, allow_negative=false, style="ugg_controls_textfield"}
+
+    local button_frame = content_frame.add{type="frame", name="button_frame", direction="horizontal", style="ugg_deep_frame"}
+    player_global.elements.button_table = button_frame.add{type="table", name="button_table", column_count=#item_sprites, style="filter_slot_table"}
+
+    build_sprite_buttons(player)
+end
+```
+
+Note that we only need to save the elements that we actually want to refer back to at some point. In our case, this is `main_frame`, `controls_slider`, `controls_textfield`, and `button_table`. With that done, we then need to replace our long indexing chains with a reference to the player's `global` table. The tutorial won't list all of these occurences, but instead use our `on_gui_click` handler as an example. All in all, this technique needs to be applied to `build_sprite_buttons()`, `toggle_interface()`, `on_gui_value_changed` and `on_gui_text_changed`.
+
+This `on_gui_click` handler code:
+
+```lua
+local player = game.get_player(event.player_index)
+local controls_flow = player.gui.screen.ugg_main_frame.content_frame.controls_flow
+controls_flow.ugg_controls_slider.enabled = player_global.controls_active
+controls_flow.ugg_controls_textfield.enabled = player_global.controls_active
+```
+
+Is changed into this code:
+
+```lua
+player_global.elements.controls_slider.enabled = player_global.controls_active
+player_global.elements.controls_textfield.enabled = player_global.controls_active
+```
+
+Lastly, and importantly, we need to make sure to clean up our `elements` table in `global` correctly. Notably, when the interface is destroyed, the references should also be removed since they have become invalid. This is the case both when the interface is closed normally, and when we run our migrations. Thankfully, since both of those cases use `toggle_interface()`, we only need to update this function, and it all works out:
+
+```lua
+local function toggle_interface(player)
+    local player_global = global.players[player.index]
+    local main_frame = player_global.elements.main_frame
+
+    if main_frame == nil then
+        build_interface(player)
+    else
+        main_frame.destroy()
+        player_global.elements = {}
+    end
+end
+```
 
 And that's it for the chapterized part of this tutorial. If you took all these lessons to heart, you should be able to make some proper interfaces for your mod. There is however a loose collection of advanced topics related to creating GUIs in Factorio. They are not strictly necessary to know, and only relevant in specific situations, but maybe you'll be in need of one of them at some point. Feel free to take a look.
 
