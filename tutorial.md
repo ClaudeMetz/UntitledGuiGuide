@@ -606,21 +606,3 @@ end
 And that's it for the chapterized part of this tutorial. If you took all these lessons to heart, you should be able to make some proper interfaces for your mod. There is however a loose collection of advanced topics related to creating GUIs in Factorio. They are not strictly necessary to know, and only relevant in specific situations, but maybe you'll be in need of one of them at some point. Feel free to take a look.
 
 *You can download a snapshot of the mod at this point [here]().*
-
-----
-
-## Topic: Looking For Inspiration
-
-- Look at vanilla or mod interfaces to see the layering and styles used (Ctrl+F5/F6)
-- Look at other well-done mods' code to see how they do things
-- lots of 'correct' approaches!
-- Look at Rai's style guide
-- Ask on the Discord
-
-## Topic: Style Prototypes
-
-## Topic: mod-gui
-
-## Topic: Manipulating Vanilla GUIs
-
-- Can't manipulate directly, but can do two things: entirely replace, or add relative elements

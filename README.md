@@ -1,6 +1,8 @@
 # Untitled GUI Guide
 
-This is a tutorial on how to build custom GUIs for the game [Factorio](factorio.com). It goes through the steps to do so starting at a very basic level, but does require some basic knowledge on how Factorio modding works. The tutorial itself explains the prerequisites in the 'Before You Get Started' section. In addition to the main tutorial that shows you the ropes of creating a GUI, there are various topics explaining some advanced techniques that come in handy when working on more complicated interfaces.
+This project aims to teach you about building custom interfaces in [Factorio](https://factorio.com). It does so in two parts: First, a chapterized tutorial that guides you through the process, starting at the very basics of element creation and interaction handling. Second, it provides a loose collection of advanced topics that you can use to expand your knowledge.
+
+**The actual tutorial is found in this project's [Wiki](https://github.com/ClaudeMetz/UntitledGuiGuide/wiki)!**
 
 ## Contribute
 
