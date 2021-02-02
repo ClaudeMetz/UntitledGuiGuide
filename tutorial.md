@@ -14,7 +14,7 @@ Lastly, it is important to note that this is not a style guide. It shows you how
 
 During the course of this tutorial, we'll be building a small GUI that illustrates the concepts that are being taught. To that end, you'll find a zipped version of the mod after every chapter of the tutorial that can be used to verify the code you wrote, or to just use directly to avoid you having to put the snippets of code together yourself.
 
-We'll be starting from a blank project that you can download [here](). It only has a basic `info.json`, a `control.lua` file that disables the freeplay intro cinematic, a `data.lua` that adds some style prototypes, and locale file that we'll be using down the line. If you're not familiar with what you see here, please refer to the 'Before you get started' section to learn more before you proceed.
+We'll be starting from a bare-bones project that you can download [here](https://github.com/ClaudeMetz/UntitledGuiGuide/raw/master/code/chapter-0/UntitledGuiGuide_1.1.0.zip). It has a basic `info.json`, a `control.lua` file that disables the freeplay intro cinematic, a `data.lua` that adds some style prototypes, and locale file that we'll be using down the line. If you're not familiar with how to set up a mod, please refer to the 'Before you get started' section to learn more before you proceed.
 
 ## Chapter 0: Familiarizing Yourself With The Tools
 
