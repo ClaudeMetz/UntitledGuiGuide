@@ -34,37 +34,37 @@ With all that out of the way, let's finally get to some actual coding. In this f
 
 The first question we'll have to ask ourselves is: 'At what point in time do we add this window?'. In Factorio, you can only do things in reaction to an event. In our case, we'll be chooing the [on_player_created](https://lua-api.factorio.com/latest/events.html#on_player_created) event. It runs, as the name implies, the first time a player starts a map or joins a multiplayer game, and only then.
 
-This event makes sense for us, as we can just create the GUI the moment a player joins, and thus have it available from that moment on. Take note that GUIs are created for individual players, so each player needs to have their own if you want all of them to have one. There are other places where it might make sense to create a GUI, but we'll leave those for the 'Advanced Techniques'-section.
+This event makes sense for us as we can just create the GUI the moment a player joins, and thus have it shown from that moment on. Note that GUIs are created for individual players, so each player needs to have their own if you want all of them to have one. There are other events that could be used to create a GUI, but we'll leave those for later.
 
-So then, let's register the `on_player_created` event. You should be familiar with how to register events, if you are not, please refer to the 'Before you get started' section to learn more before you proceed. In reaction to the event, we'll create a basic interface.
+So then, let's register the `on_player_created` event. You should be familiar with how to register events, if you are not, please refer to the 'Before you get started' section to learn more before you proceed. In reaction to the event, we'll create a basic interface in our `control.lua` file:
 
 ```lua
 script.on_event(defines.events.on_player_created, function(event)
     local player = game.get_player(event.player_index)
     local screen_element = player.gui.screen
     local main_frame = screen_element.add{type="frame", name="ugg_main_frame", caption={"ugg.hello_world"}}
-    main_frame.style.size = {385, 300}
+    main_frame.style.size = {385, 165}
     main_frame.auto_center = true
 end)
 ```
 
-At this point, it is important to note that you need to start a new map with this mod enabled for this code to run. If you load up an old save of yours, this event will not be fired, as you're already a player on it. This also means that if you make any modifications to your GUI code, say change the dimensions of the frame, you'll need to restart your map to be able to see your modifications. If you do this correctly, your screen should look something like this upon starting a new map:
+At this point, it is important to note that you need to start a new map with this mod enabled for this code to run. If you load up an old save of yours, this event will not be fired as you're already a player on it. This also means that if you make any modifications to this code, say change the dimensions of the frame, you'll need to restart your map to be able to see the modifications. If you do this correctly, your screen should look something like this upon starting a new map:
 
-![Screenshot of the 'Hello, World!'-example](images/hello_world.png)
+![Screenshot of the 'Hello, World!'-example](https://github.com/ClaudeMetz/UntitledGuiGuide/blob/master/images/hello_world.png?raw=true)
 
-There is already quite a lot happening in that short snippet of code, so we'll go through it line by line. First, you need to get the actual player object that we'll be adding the GUI to. The event only provides us with the `player_index`, not the `player` object itself, so we put `player_index` into [game.get_player()](https://lua-api.factorio.com/latest/LuaGameScript.html#LuaGameScript.get_player) and out plops our player object.
+There is already quite a lot happening in that short snippet of code, so we'll go through it line by line. First, you need to get the actual player object that we'll be adding the GUI to. The event only provides us with the `player_index`, not the `player` object itself, so we put the `player_index` into [game.get_player()](https://lua-api.factorio.com/latest/LuaGameScript.html#LuaGameScript.get_player) and out plops our player object.
 
 Then, we'll need to get one of the base elements that the game provides to us. In our case, we choose `screen` as it's the most versatile one of the bunch. This base element can be found on [LuaGui](https://lua-api.factorio.com/latest/LuaGui.html#LuaGui.screen), which in turn is found on the [LuaPlayer](https://lua-api.factorio.com/latest/LuaPlayer.html#LuaPlayer.gui) object we got a handle on in the previous line.
 
-With that infrastructure in place, we can add our actual element using [LuaGuiElement.add](https://lua-api.factorio.com/latest/LuaGuiElement.html#LuaGuiElement.add). The docs for this element are somewhat intimidating, but you won't need to worry about most of the function's arguments. In our case, we just want to add a `frame` (which is the type that represents a window) with a caption/title on it. To that end, we'll call `.add` and pass a table describing the `type` of element and a localised string for the caption. If you are not familiar with how localised strings work, please refer to the 'Before you get started' section to learn more before you proceed.
+With that infrastructure in place, we can add our actual element using [LuaGuiElement.add](https://lua-api.factorio.com/latest/LuaGuiElement.html#LuaGuiElement.add). The docs for this element are somewhat intimidating, but you won't need to worry about most of the function's arguments. In our case, we just want to add a `frame` (which is the type that represents a window) with a `caption` (aka. title) on it. To that end, we'll call `.add` on the top level `screen` element and pass a table describing the `type` of element and a localised string for the `caption`. If you are not familiar with how localised strings work, please refer to the 'Before you get started' section to learn more before you proceed.
 
-We'll also give the frame a name that will come in handy later on. Be sure to prefix it with an unique identifier (`ugg` in our case) to avoid conflicts with other mods. This is only necessary for elements you add to one of the game's base elements (the ones found in `LuaGui`) as all mods share the namespaces of those elements.
+We'll also give the frame a name that will come in handy later on. Be sure to prefix it with an unique identifier (`ugg` in our case) to avoid conflicts with other mods. This is only necessary for elements you add to one of the game's top level elements (the ones found in `LuaGui`) as all mods share the namespace of those elements.
 
 Then, we adjust the appearance of our frame a bit to make it look nicer. We give it a certain width and height using the [size](https://lua-api.factorio.com/latest/LuaStyle.html#LuaStyle.size) attribute. Note that `size` is not a direct attribute of our element, but of its [style](https://lua-api.factorio.com/latest/LuaGuiElement.html#LuaGuiElement.style). You'll run into this dichotomy between [LuaGuiElement](https://lua-api.factorio.com/latest/LuaGuiElement.html) and [LuaStyle](https://lua-api.factorio.com/latest/LuaStyle.html) quite frequently, so make sure to look up where your desired property is actually located.
 
-The last line tells our frame to automatically center itself in the middle of the screen, preventing it from hiding itself in the top left. And there you go, your first GUI element has been created. A frame with a title, and you can even move it around if you want to. It is a bit boring though, so let's address that by adding a button that can be clicked!
+The last line tells our frame to automatically center itself in the middle of the screen, preventing it from sticking to the top left. And there you go, your first GUI element has been created. A frame with a title, and you can even move it around if you want to by dragging the space next to the caption. It is a bit boring though, so let's address that by adding a button that can be clicked.
 
-*You can download a snapshot of the mod at this point [here]().*
+*You can download a snapshot of the mod at this point [here](https://github.com/ClaudeMetz/UntitledGuiGuide/raw/master/code/chapter-1/UntitledGuiGuide_1.1.1.zip).*
 
 ## Chapter 2: Pressing The Button
 
