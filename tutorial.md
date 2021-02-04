@@ -411,7 +411,7 @@ With these issues taken care of, our mod now works properly in multiplayer and i
 
 *You can download a snapshot of the mod at this point [here]().*
 
-## Chapter 7: Creating a Shortcut
+## Chapter 7: Taking a Shortcut
 
 This whole interface of ours works pretty well by this point, but it's a very particular type of GUI: One that's always on the screen. This is perfectly fine for some types of mods of course, but many will want to allow the user to toggle its visibility themselves. For this, some more infrastructure is needed.
 
