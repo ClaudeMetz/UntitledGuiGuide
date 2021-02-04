@@ -304,7 +304,7 @@ Finally, we can get to the event handler itself, which is mostly straightforward
 script.on_event(defines.events.on_gui_click, function(event)
     if event.element.name == "ugg_controls_toggle" then
         [ ... ]
-    elseif event.elements.tags.action == "ugg_select_button" then
+    elseif event.element.tags.action == "ugg_select_button" then
         local clicked_item_name = event.element.tags.item_name
         global.players[event.player_index].selected_item = clicked_item_name
 

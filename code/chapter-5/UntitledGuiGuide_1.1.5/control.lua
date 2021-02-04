@@ -9,7 +9,8 @@ local function build_sprite_buttons(player)
     local number_of_buttons = player_global.button_count
     for i = 1, number_of_buttons do
         local sprite_name = item_sprites[i]
-        button_table.add{type="sprite-button", sprite=("item/" .. sprite_name), style="recipe_slot_button"}
+        local button_style = (sprite_name == player_global.selected_item) and "yellow_slot_button" or "recipe_slot_button"
+        button_table.add{type="sprite-button", sprite=("item/" .. sprite_name), tags={action="ugg_select_button", item_name=sprite_name}, style=button_style}
     end
 end
 
@@ -27,7 +28,7 @@ end)
 
 script.on_event(defines.events.on_player_created, function(event)
     local player = game.get_player(event.player_index)
-    global.players[player.index] = { controls_active = true, button_count = 0 }
+    global.players[player.index] = { controls_active = true, button_count = 0, selected_item = nil }
 
     local screen_element = player.gui.screen
     local main_frame = screen_element.add{type="frame", name="ugg_main_frame", caption={"ugg.hello_world"}}
@@ -59,6 +60,15 @@ script.on_event(defines.events.on_gui_click, function(event)
         local controls_flow = player.gui.screen.ugg_main_frame.content_frame.controls_flow
         controls_flow.ugg_controls_slider.enabled = player_global.controls_active
         controls_flow.ugg_controls_textfield.enabled = player_global.controls_active
+
+    elseif event.element.tags.action == "ugg_select_button" then
+        local player = game.get_player(event.player_index)
+        local player_global = global.players[player.index]
+
+        local clicked_item_name = event.element.tags.item_name
+        player_global.selected_item = clicked_item_name
+
+        build_sprite_buttons(player)
     end
 end)
 
