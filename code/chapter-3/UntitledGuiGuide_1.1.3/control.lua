@@ -30,6 +30,7 @@ script.on_event(defines.events.on_player_created, function(event)
     controls_flow.add{type="textfield", name="ugg_controls_textfield", text="0", numeric=true, allow_decimal=false, allow_negative=false, style="ugg_controls_textfield"}
 end)
 
+
 script.on_event(defines.events.on_gui_click, function(event)
     if event.element.name == "ugg_controls_toggle" then
         local player_global = global.players[event.player_index]

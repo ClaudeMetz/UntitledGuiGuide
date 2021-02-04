@@ -14,6 +14,7 @@ local function build_sprite_buttons(player)
     end
 end
 
+
 -- Make sure the intro cinematic of freeplay doesn't play every time we restart
 -- This is just for convenience, don't worry if you don't understand how this works
 script.on_init(function()
@@ -47,6 +48,7 @@ script.on_event(defines.events.on_player_created, function(event)
     button_frame.add{type="table", name="button_table", column_count=#item_sprites, style="filter_slot_table"}
     build_sprite_buttons(player)
 end)
+
 
 script.on_event(defines.events.on_gui_click, function(event)
     if event.element.name == "ugg_controls_toggle" then

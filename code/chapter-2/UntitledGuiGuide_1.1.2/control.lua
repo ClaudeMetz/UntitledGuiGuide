@@ -10,6 +10,7 @@ script.on_init(function()
     global.players = {}
 end)
 
+
 script.on_event(defines.events.on_player_created, function(event)
     local player = game.get_player(event.player_index)
     global.players[player.index] = { controls_active = true }
