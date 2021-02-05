@@ -30,6 +30,7 @@ styles["ugg_deep_frame"] = {
     bottom_margin = 4
 }
 
+
 data:extend({
     {
         type = "custom-input",

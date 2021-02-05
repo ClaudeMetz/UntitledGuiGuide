@@ -1,17 +1,16 @@
-local item_sprites = {"inserter", "transport-belt", "stone-furnace", "assembling-machine-3",
-  "logistic-chest-storage", "sulfur", "utility-science-pack", "laser-turret"}
+local item_sprites = {"inserter", "transport-belt", "stone-furnace", "assembling-machine-3", "logistic-chest-storage", "sulfur", "utility-science-pack", "laser-turret"}
 
 local function build_sprite_buttons(player)
     local player_global = global.players[player.index]
+
     local button_table = player_global.elements.button_table
     button_table.clear()
 
-    for index, sprite_name in ipairs(item_sprites) do
-        if index > player_global.button_count then break end
-
+    local number_of_buttons = player_global.button_count
+    for i = 1, number_of_buttons do
+        local sprite_name = item_sprites[i]
         local button_style = (sprite_name == player_global.selected_item) and "yellow_slot_button" or "recipe_slot_button"
-        button_table.add{type="sprite-button", sprite=("item/" .. sprite_name),
-          tags={action="ugg_select_button", item_name=sprite_name}, style=button_style}
+        button_table.add{type="sprite-button", sprite=("item/" .. sprite_name), tags={action="ugg_select_button", item_name=sprite_name}, style=button_style}
     end
 end
 
@@ -22,29 +21,25 @@ local function build_interface(player)
     local main_frame = screen_element.add{type="frame", name="ugg_main_frame", caption={"ugg.hello_world"}}
     main_frame.style.size = {385, 165}
     main_frame.auto_center = true
+
     player.opened = main_frame
     player_global.elements.main_frame = main_frame
 
-    local content_frame = main_frame.add{type="frame", name="content_frame", direction="vertical",
-      style="ugg_content_frame"}
-    local controls_flow = content_frame.add{type="flow", name="controls_flow", direction="horizontal",
-      style="ugg_controls_flow"}
+    local content_frame = main_frame.add{type="frame", name="content_frame", direction="vertical", style="ugg_content_frame"}
+    local controls_flow = content_frame.add{type="flow", name="controls_flow", direction="horizontal", style="ugg_controls_flow"}
 
     local button_caption = (player_global.controls_active) and {"ugg.deactivate"} or {"ugg.activate"}
     controls_flow.add{type="button", name="ugg_controls_toggle", caption=button_caption}
 
     local initial_button_count = player_global.button_count
-    player_global.elements.controls_slider = controls_flow.add{type="slider", name="ugg_controls_slider", value=initial_button_count,
-      minimum_value=0, maximum_value=#item_sprites, style="notched_slider"}
-    player_global.elements.controls_textfield = controls_flow.add{type="textfield", name="ugg_controls_textfield",
-      text=tostring(initial_button_count), numeric=true, allow_decimal=false, allow_negative=false,
-      style="ugg_controls_textfield"}
+    local controls_slider = controls_flow.add{type="slider", name="ugg_controls_slider", value=initial_button_count, minimum_value=0, maximum_value=#item_sprites, style="notched_slider"}
+    player_global.elements.controls_slider = controls_slider
+    local controls_textfield = controls_flow.add{type="textfield", name="ugg_controls_textfield", text=tostring(initial_button_count), numeric=true, allow_decimal=false, allow_negative=false, style="ugg_controls_textfield"}
+    player_global.elements.controls_textfield = controls_textfield
 
-    local button_frame = content_frame.add{type="frame", name="button_frame", direction="horizontal",
-      style="ugg_deep_frame"}
-      player_global.elements.button_table = button_frame.add{type="table", name="button_table",
-        column_count=#item_sprites, style="filter_slot_table"}
-
+    local button_frame = content_frame.add{type="frame", name="button_frame", direction="horizontal", style="ugg_deep_frame"}
+    local button_table = button_frame.add{type="table", name="button_table", column_count=#item_sprites, style="filter_slot_table"}
+    player_global.elements.button_table = button_table
     build_sprite_buttons(player)
 end
 
@@ -64,6 +59,7 @@ local function toggle_interface(player)
     end
 end
 
+
 -- Make sure the intro cinematic of freeplay doesn't play every time we restart
 -- This is just for convenience, don't worry if you don't understand how this works
 script.on_init(function()
@@ -80,14 +76,15 @@ script.on_init(function()
     end
 end)
 
-script.on_configuration_changed(function(data)
-    if data.mod_changes["UntitledGuiGuide"] then
+script.on_configuration_changed(function(config_changed_data)
+    if config_changed_data.mod_changes["UntitledGuiGuide"] then
         for _, player in pairs(game.players) do
-            local main_frame = player.gui.screen.main_frame
-            if main_frame ~= nil then main_frame.destroy() end
+            local player_global = global.players[player.index]
+            if player_global.elements.main_frame ~= nil then toggle_interface(player) end
         end
     end
 end)
+
 
 script.on_event(defines.events.on_player_created, function(event)
     local player = game.get_player(event.player_index)
@@ -97,6 +94,20 @@ end)
 script.on_event(defines.events.on_player_removed, function(event)
     global.players[event.player_index] = nil
 end)
+
+
+script.on_event("ugg_toggle_interface", function(event)
+    local player = game.get_player(event.player_index)
+    toggle_interface(player)
+end)
+
+script.on_event(defines.events.on_gui_closed, function(event)
+    if event.element and event.element.name == "ugg_main_frame" then
+        local player = game.get_player(event.player_index)
+        toggle_interface(player)
+    end
+end)
+
 
 script.on_event(defines.events.on_gui_click, function(event)
     if event.element.name == "ugg_controls_toggle" then
@@ -108,11 +119,14 @@ script.on_event(defines.events.on_gui_click, function(event)
 
         player_global.elements.controls_slider.enabled = player_global.controls_active
         player_global.elements.controls_textfield.enabled = player_global.controls_active
-    elseif event.element.tags.action == "ugg_select_button" then
-        local clicked_item_name = event.element.tags.item_name
-        global.players[event.player_index].selected_item = clicked_item_name
 
+    elseif event.element.tags.action == "ugg_select_button" then
         local player = game.get_player(event.player_index)
+        local player_global = global.players[player.index]
+
+        local clicked_item_name = event.element.tags.item_name
+        player_global.selected_item = clicked_item_name
+
         build_sprite_buttons(player)
     end
 end)
@@ -144,16 +158,4 @@ script.on_event(defines.events.on_gui_text_changed, function(event)
 
         build_sprite_buttons(player)
     end
-end)
-
-script.on_event(defines.events.on_gui_closed, function(event)
-    if event.element and event.element.name == "ugg_main_frame" then
-        local player = game.get_player(event.player_index)
-        toggle_interface(player)
-    end
-end)
-
-script.on_event("ugg_toggle_interface", function(event)
-    local player = game.get_player(event.player_index)
-    toggle_interface(player)
 end)

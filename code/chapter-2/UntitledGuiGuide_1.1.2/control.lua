@@ -26,6 +26,7 @@ script.on_event(defines.events.on_player_created, function(event)
     controls_flow.add{type="button", name="ugg_controls_toggle", caption={"ugg.deactivate"}}
 end)
 
+
 script.on_event(defines.events.on_gui_click, function(event)
     if event.element.name == "ugg_controls_toggle" then
         local player_global = global.players[event.player_index]
