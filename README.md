@@ -8,6 +8,8 @@ This project aims to teach you about building custom interfaces in [Factorio](ht
 
 If you have any suggestions for topics that should be covered, ideas for improvements of any kind that could be made, or problems that need to be fixed, please open an [issue](https://github.com/ClaudeMetz/UntitledGuiGuide/issues/new) or [pull request](https://github.com/ClaudeMetz/UntitledGuiGuide/compare). I'm open to any kind of feedback.
 
+The Factory Planner [Discord](https://discord.gg/ATUjz8eYTr) has a dedicated channel for this project, so feel free to join if you prefer to talk to me that way.
+
 ## License
 
 This tutorial and the associated code is in the public domain, so feel free to use it in any of your projects.
