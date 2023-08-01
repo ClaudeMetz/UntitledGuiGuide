@@ -31,8 +31,8 @@ local function build_interface(player)
     controls_flow.add{type="button", name="ugg_controls_toggle", caption=button_caption}
 
     local initial_button_count = player_global.button_count
-    controls_flow.add{type="slider", name="ugg_controls_slider", value=initial_button_count, minimum_value=0, maximum_value=#item_sprites, style="notched_slider"}
-    controls_flow.add{type="textfield", name="ugg_controls_textfield", text=tostring(initial_button_count), numeric=true, allow_decimal=false, allow_negative=false, style="ugg_controls_textfield"}
+    controls_flow.add{type="slider", name="ugg_controls_slider", value=initial_button_count, minimum_value=0, maximum_value=#item_sprites, style="notched_slider", enabled=player_global.controls_active}
+    controls_flow.add{type="textfield", name="ugg_controls_textfield", text=tostring(initial_button_count), numeric=true, allow_decimal=false, allow_negative=false, style="ugg_controls_textfield", enabled=player_global.controls_active}
 
     local button_frame = content_frame.add{type="frame", name="button_frame", direction="horizontal", style="ugg_deep_frame"}
     button_frame.add{type="table", name="button_table", column_count=#item_sprites, style="filter_slot_table"}
