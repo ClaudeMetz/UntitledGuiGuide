@@ -19,7 +19,7 @@ def package_code():
 
     for chapter_folder_path in cwd.glob("chapter-*"):
         chapter_number = chapter_folder_path.name.split("-")[1]
-        code_folder_name = "UntitledGuiGuide_1.1." + chapter_number
+        code_folder_name = "UntitledGuiGuide_2.0." + chapter_number
         code_folder_path = chapter_folder_path / code_folder_name
 
         tmp_license_path = code_folder_path / "LICENSE.md"
